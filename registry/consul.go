@@ -3,6 +3,7 @@ package registry
 import (
 	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"log"
 	"os"
 
@@ -72,6 +73,12 @@ func WithHealthEndpoint(endpoint string) Option {
 	}
 }
 
+func WithLogger(logger *logrus.Logger) Option {
+	return func(c *Consul) error {
+		return c.WithLogger(logger)
+	}
+}
+
 type Consul struct {
 	id             string
 	name           string
@@ -79,6 +86,7 @@ type Consul struct {
 	interval       string
 	timeout        string
 	healthEndpoint string
+	*logrus.Logger
 }
 
 func NewConsul(options ...Option) (*Consul, error) {
@@ -90,6 +98,7 @@ func NewConsul(options ...Option) (*Consul, error) {
 		interval:       "3s",
 		timeout:        "5s",
 		healthEndpoint: "",
+		Logger:         logrus.New(),
 	}
 	for _, option := range options {
 		err := option(c)
@@ -128,4 +137,12 @@ func (c *Consul) Register() error {
 		registration.Check.Timeout = c.timeout
 	}
 	return consul.Agent().ServiceRegister(registration)
+}
+
+func (c *Consul) WithLogger(logger *logrus.Logger) error {
+	if logger != nil {
+		c.Logger = logger
+		return nil
+	}
+	return errors.New("logger cannot be nil")
 }

@@ -14,6 +14,7 @@ type Service interface {
 	Run()
 	Stop()
 	IsRunning() bool
+	HookShutDown(func())
 	//
 	//Handle(string, string, interface{}) error
 	//Subscribe(string, interface{}) error

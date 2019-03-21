@@ -48,6 +48,12 @@ func WithStaticFilesFolder(route, folder string) Option {
 	}
 }
 
+func WithLogger(logger *logrus.Logger) Option {
+	return func(rest *Rest) error {
+		return rest.WithLogger(logger)
+	}
+}
+
 // Rest Server
 type Rest struct {
 	// Port bound to server
@@ -63,7 +69,7 @@ type Rest struct {
 	cert           string
 	key            string
 	server         *http.Server
-	logger         *logrus.Logger
+	*logrus.Logger
 }
 
 func NewRest(options ...Option) (*Rest, error) {
@@ -75,7 +81,7 @@ func NewRest(options ...Option) (*Rest, error) {
 		deleteHandlers: make(map[string][]gin.HandlerFunc),
 		middleware:     make([]func(ctx *gin.Context), 0),
 		websiteFolder:  make(map[string]string),
-		logger:         logrus.New(),
+		Logger:         logrus.New(),
 	}
 
 	for _, option := range options {
@@ -130,7 +136,7 @@ func (r *Rest) StaticFilesFolder(uri, folder string) error {
 
 func (r *Rest) Run() error {
 	router := gin.New()
-	router.Use(ginlogrus.Logger(r.logger), gin.Recovery())
+	router.Use(ginlogrus.Logger(r.Logger), gin.Recovery())
 	router.GET("/healthcheck", func(c *gin.Context) {
 		c.String(200, "product service is good")
 	})
@@ -174,11 +180,11 @@ func (r *Rest) Run() error {
 	go func() {
 		if r.cert != "" && r.key != "" {
 			if err := s.ListenAndServeTLS(r.cert, r.key); err != nil {
-				r.logger.Fatal(err)
+				r.Fatal(err)
 			}
 
 		} else if err := s.ListenAndServe(); err != nil {
-			r.logger.Fatal(err)
+			r.Fatal(err)
 		}
 	}()
 	return nil
@@ -188,4 +194,12 @@ func (r *Rest) Stop() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	return r.server.Shutdown(ctx)
+}
+
+func (r *Rest) WithLogger(logger *logrus.Logger) error {
+	if logger != nil {
+		r.Logger = logger
+		return nil
+	}
+	return errors.New("logger cannot be nil")
 }

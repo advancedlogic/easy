@@ -2,6 +2,7 @@ package easy
 
 import (
 	"errors"
+	"github.com/advancedlogic/easy/broker"
 	"github.com/advancedlogic/easy/interfaces"
 	"github.com/advancedlogic/easy/registry"
 	"github.com/advancedlogic/easy/transport"
@@ -19,6 +20,8 @@ type Easy struct {
 
 	registry  interfaces.Registry
 	transport interfaces.Transport
+	broker    interfaces.Broker
+
 	*logrus.Logger
 }
 
@@ -56,7 +59,7 @@ func WithRegistry(registry interfaces.Registry) Option {
 
 func WithDefaultRegistry() Option {
 	return func(easy *Easy) error {
-		r, err := registry.NewConsul()
+		r, err := registry.NewConsul(registry.WithLogger(easy.Logger))
 		if err != nil {
 			return err
 		}
@@ -67,12 +70,41 @@ func WithDefaultRegistry() Option {
 
 func WithDefaultTransport() Option {
 	return func(easy *Easy) error {
-		t, err := transport.NewRest()
+		t, err := transport.NewRest(transport.WithLogger(easy.Logger))
 		if err != nil {
 			return err
 		}
 		easy.transport = t
 		return nil
+	}
+}
+
+func WithDefaultBroker() Option {
+	return func(easy *Easy) error {
+		b, err := broker.NewNats(broker.WithLogger(easy.Logger))
+		if err != nil {
+			return err
+		}
+		easy.broker = b
+		return nil
+	}
+}
+
+func WithHandler(mode, route string, handler interface{}) Option {
+	return func(easy *Easy) error {
+		return easy.transport.Handler(mode, route, handler)
+	}
+}
+
+func WithMiddleware(middleware interface{}) Option {
+	return func(easy *Easy) error {
+		return easy.transport.Middleware(middleware)
+	}
+}
+
+func WithStaticFilesFolder(route, folder string) Option {
+	return func(easy *Easy) error {
+		return easy.transport.StaticFilesFolder(route, folder)
 	}
 }
 
@@ -83,6 +115,16 @@ func WithTransport(transport interfaces.Transport) Option {
 			return nil
 		}
 		return errors.New("transport cannot be nil")
+	}
+}
+
+func WithBroker(broker interfaces.Broker) Option {
+	return func(easy *Easy) error {
+		if broker != nil {
+			easy.broker = broker
+			return nil
+		}
+		return errors.New("broker cannot be nil")
 	}
 }
 
@@ -127,18 +169,31 @@ func (easy *Easy) Transport() interfaces.Transport {
 	return easy.transport
 }
 
+func (easy *Easy) Broker() interfaces.Broker {
+	return easy.broker
+}
+
 func (easy *Easy) Run() {
 	go_shutdown_hook.ADD(func() {
 		easy.Stop()
 		easy.Warn("Goodbye and thanks for all the fish")
 	})
 	if easy.registry != nil {
+		easy.Info("registry setup")
 		err := easy.registry.Register()
 		if err != nil {
 			easy.Fatal(err)
 		}
 	}
+	if easy.broker != nil {
+		easy.Info("broker setup")
+		err := easy.broker.Run()
+		if err != nil {
+			easy.Fatal(err)
+		}
+	}
 	if easy.transport != nil {
+		easy.Info("transport setup")
 		err := easy.transport.Run()
 		if err != nil {
 			easy.Fatal(err)
@@ -150,9 +205,13 @@ func (easy *Easy) Run() {
 }
 
 func (easy *Easy) Stop() {
+	if easy.broker != nil {
+		if err := easy.broker.Close(); err != nil {
+			easy.Fatal(err)
+		}
+	}
 	if easy.transport != nil {
-		err := easy.transport.Stop()
-		if err != nil {
+		if err := easy.transport.Stop(); err != nil {
 			easy.Fatal(err)
 		}
 	}
@@ -160,4 +219,8 @@ func (easy *Easy) Stop() {
 
 func (easy *Easy) IsRunning() bool {
 	return easy.isRunning
+}
+
+func (easy *Easy) HookShutDown(fn func()) {
+	go_shutdown_hook.ADD(fn)
 }
