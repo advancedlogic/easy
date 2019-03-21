@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/advancedlogic/easy/commons"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/toorop/gin-logrus"
@@ -13,13 +14,6 @@ import (
 )
 
 type Option func(*Rest) error
-
-const (
-	GET    = "get"
-	POST   = "post"
-	PUT    = "put"
-	DELETE = "delete"
-)
 
 func WithPort(port int) Option {
 	return func(rest *Rest) error {
@@ -34,6 +28,34 @@ func WithPort(port int) Option {
 func WithHandler(mode, route string, handler interface{}) Option {
 	return func(rest *Rest) error {
 		return rest.Handler(mode, route, handler)
+	}
+}
+
+func GET(route string, handler interface{}) Option {
+	return func(rest *Rest) error {
+		option := WithHandler(commons.ModeGet, route, handler)
+		return option(rest)
+	}
+}
+
+func POST(route string, handler interface{}) Option {
+	return func(rest *Rest) error {
+		option := WithHandler(commons.ModePost, route, handler)
+		return option(rest)
+	}
+}
+
+func PUT(route string, handler interface{}) Option {
+	return func(rest *Rest) error {
+		option := WithHandler(commons.ModePut, route, handler)
+		return option(rest)
+	}
+}
+
+func DELETE(route string, handler interface{}) Option {
+	return func(rest *Rest) error {
+		option := WithHandler(commons.ModeDelete, route, handler)
+		return option(rest)
 	}
 }
 
@@ -95,22 +117,22 @@ func NewRest(options ...Option) (*Rest, error) {
 }
 func (r *Rest) Handler(mode, route string, handler interface{}) error {
 	switch mode {
-	case GET:
+	case commons.ModeGet:
 		if _, exists := r.getHandlers[route]; !exists {
 			r.getHandlers[route] = make([]gin.HandlerFunc, 0)
 		}
 		r.getHandlers[route] = append(r.getHandlers[route], gin.HandlerFunc(handler.(func(*gin.Context))))
-	case POST:
+	case commons.ModePost:
 		if _, exists := r.postHandlers[route]; !exists {
 			r.postHandlers[route] = make([]gin.HandlerFunc, 0)
 		}
 		r.postHandlers[route] = append(r.postHandlers[route], gin.HandlerFunc(handler.(func(*gin.Context))))
-	case PUT:
+	case commons.ModePut:
 		if _, exists := r.putHandlers[route]; !exists {
 			r.putHandlers[route] = make([]gin.HandlerFunc, 0)
 		}
 		r.putHandlers[route] = append(r.putHandlers[route], gin.HandlerFunc(handler.(func(*gin.Context))))
-	case DELETE:
+	case commons.ModeDelete:
 		if _, exists := r.deleteHandlers[route]; !exists {
 			r.deleteHandlers[route] = make([]gin.HandlerFunc, 0)
 		}

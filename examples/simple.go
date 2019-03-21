@@ -17,13 +17,13 @@ func main() {
 		microservice.Fatal(err)
 	}
 
-	if err := microservice.Broker().Subscribe("test", func(msg *nats.Msg) {
+	if err := microservice.Subscribe("test", func(msg *nats.Msg) {
 
 	}); err != nil {
 		microservice.Fatal(err)
 	}
 
-	if err := microservice.Transport().Handler("get", "/ping", func(c *gin.Context) {
+	if err := microservice.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
 	}); err != nil {
 		microservice.Fatal(err)

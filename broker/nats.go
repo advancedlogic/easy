@@ -16,7 +16,7 @@ type Nats struct {
 	userJWT             string
 	userNK              string
 	*logrus.Logger
-	handlers      map[string]nats.MsgHandler
+	handlers      map[string]func(*nats.Msg)
 	subscriptions map[string]*nats.Subscription
 }
 
@@ -39,7 +39,7 @@ func WithLogger(logger *logrus.Logger) Option {
 func NewNats(options ...Option) (*Nats, error) {
 	n := &Nats{
 		endpoint:      "localhost:4222",
-		handlers:      make(map[string]nats.MsgHandler),
+		handlers:      make(map[string]func(*nats.Msg)),
 		subscriptions: make(map[string]*nats.Subscription),
 		Logger:        logrus.New(),
 	}
@@ -67,8 +67,8 @@ func (n *Nats) Publish(topic string, message interface{}) error {
 	return n.conn.Publish(topic, message.([]byte))
 }
 
-func (n *Nats) Subscribe(topic string, handler nats.MsgHandler) error {
-	n.handlers[topic] = handler
+func (n *Nats) Subscribe(topic string, handler interface{}) error {
+	n.handlers[topic] = handler.(func(*nats.Msg))
 	return nil
 }
 

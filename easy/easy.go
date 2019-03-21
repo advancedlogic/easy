@@ -3,6 +3,7 @@ package easy
 import (
 	"errors"
 	"github.com/advancedlogic/easy/broker"
+	"github.com/advancedlogic/easy/commons"
 	"github.com/advancedlogic/easy/interfaces"
 	"github.com/advancedlogic/easy/registry"
 	"github.com/advancedlogic/easy/transport"
@@ -21,6 +22,9 @@ type Easy struct {
 	registry  interfaces.Registry
 	transport interfaces.Transport
 	broker    interfaces.Broker
+	client    interfaces.Client
+	store     interfaces.Store
+	processor interfaces.Processor
 
 	*logrus.Logger
 }
@@ -128,6 +132,36 @@ func WithBroker(broker interfaces.Broker) Option {
 	}
 }
 
+func WithClient(client interfaces.Client) Option {
+	return func(easy *Easy) error {
+		if client != nil {
+			easy.client = client
+			return nil
+		}
+		return errors.New("client cannot be nil")
+	}
+}
+
+func WithStore(store interfaces.Store) Option {
+	return func(easy *Easy) error {
+		if store != nil {
+			easy.store = store
+			return nil
+		}
+		return errors.New("store cannot be nil")
+	}
+}
+
+func WithProcessor(processor interfaces.Processor) Option {
+	return func(easy *Easy) error {
+		if processor != nil {
+			easy.processor = processor
+			return nil
+		}
+		return errors.New("processor cannot be nil")
+	}
+}
+
 //NewEasy create a new µs according to the passed options
 //WithID: default random
 //WithName: default "default"
@@ -171,6 +205,14 @@ func (easy *Easy) Transport() interfaces.Transport {
 
 func (easy *Easy) Broker() interfaces.Broker {
 	return easy.broker
+}
+
+func (easy *Easy) Client() interfaces.Client {
+	return easy.client
+}
+
+func (easy *Easy) Store() interfaces.Store {
+	return easy.store
 }
 
 func (easy *Easy) Run() {
@@ -223,4 +265,36 @@ func (easy *Easy) IsRunning() bool {
 
 func (easy *Easy) HookShutDown(fn func()) {
 	go_shutdown_hook.ADD(fn)
+}
+
+func (easy *Easy) Handler(mode, route string, handler interface{}) error {
+	return easy.transport.Handler(mode, route, handler)
+}
+
+func (easy *Easy) GET(route string, handler interface{}) error {
+	return easy.transport.Handler(commons.ModeGet, route, handler)
+}
+
+func (easy *Easy) POST(route string, handler interface{}) error {
+	return easy.transport.Handler(commons.ModePost, route, handler)
+}
+
+func (easy *Easy) PUT(route string, handler interface{}) error {
+	return easy.transport.Handler(commons.ModePut, route, handler)
+}
+
+func (easy *Easy) DELETE(route string, handler interface{}) error {
+	return easy.transport.Handler(commons.ModeDelete, route, handler)
+}
+
+func (easy *Easy) Subscribe(endpoint string, handler interface{}) error {
+	return easy.broker.Subscribe(endpoint, handler)
+}
+
+func (easy *Easy) Unsubscribe(endpoint string) error {
+	return easy.broker.Unsubscribe(endpoint)
+}
+
+func (easy *Easy) Publish(endpoint string, msg interface{}) error {
+	return easy.broker.Publish(endpoint, msg)
 }
