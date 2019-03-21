@@ -1,17 +1,17 @@
 package main
 
 import (
-	"github.com/advancedlogic/easy/easy"
+	. "github.com/advancedlogic/easy/easy"
 	"github.com/gin-gonic/gin"
 	"github.com/nats-io/go-nats"
 	"net/http"
 )
 
 func main() {
-	microservice, err := easy.NewEasy(
-		easy.WithDefaultRegistry(),
-		easy.WithDefaultBroker(),
-		easy.WithDefaultTransport())
+	microservice, err := NewEasy(
+		WithDefaultRegistry(),
+		WithDefaultBroker(),
+		WithDefaultTransport())
 
 	if err != nil {
 		microservice.Fatal(err)
