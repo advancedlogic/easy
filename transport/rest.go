@@ -68,7 +68,14 @@ type Rest struct {
 
 func NewRest(options ...Option) (*Rest, error) {
 	rest := &Rest{
-		port: 8080,
+		port:           8080,
+		getHandlers:    make(map[string][]gin.HandlerFunc),
+		postHandlers:   make(map[string][]gin.HandlerFunc),
+		putHandlers:    make(map[string][]gin.HandlerFunc),
+		deleteHandlers: make(map[string][]gin.HandlerFunc),
+		middleware:     make([]func(ctx *gin.Context), 0),
+		websiteFolder:  make(map[string]string),
+		logger:         logrus.New(),
 	}
 
 	for _, option := range options {

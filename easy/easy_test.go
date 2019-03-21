@@ -29,3 +29,8 @@ func TestErrorInName(t *testing.T) {
 	_, err := NewEasy(WithName(""))
 	assert.NotEqual(t, err, nil)
 }
+
+func TestWithDefaultRegistry(t *testing.T) {
+	easy, _ := NewEasy(WithDefaultRegistry())
+	assert.NotEqual(t, easy, nil)
+}

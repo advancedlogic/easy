@@ -1,5 +1,7 @@
 package interfaces
 
+import "github.com/advancedlogic/goms/pkg/interfaces"
+
 //Basic Microservice interface
 // ID()  set/get unique Microservice identifier
 // Name() set/get the Microservice name
@@ -9,9 +11,13 @@ type Service interface {
 	Name() string
 
 	//Init(...ServiceOption)
-	//Run(...interface{}) error
-	//Stop(...interface{}) error
+	Run()
+	Stop()
+	IsRunning() bool
 	//
 	//Handle(string, string, interface{}) error
 	//Subscribe(string, interface{}) error
+
+	Registry() interfaces.Registry
+	Transport() interfaces.Transport
 }
