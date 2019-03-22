@@ -155,6 +155,10 @@ func WithStore(store interfaces.Store) Option {
 func WithProcessor(processor interfaces.Processor) Option {
 	return func(easy *Easy) error {
 		if processor != nil {
+			err := processor.Init(easy)
+			if err != nil {
+				return err
+			}
 			easy.processor = processor
 			return nil
 		}
@@ -297,4 +301,24 @@ func (easy *Easy) Unsubscribe(endpoint string) error {
 
 func (easy *Easy) Publish(endpoint string, msg interface{}) error {
 	return easy.broker.Publish(endpoint, msg)
+}
+
+func (easy *Easy) Info(message interface{}) {
+	easy.Info(message)
+}
+
+func (easy *Easy) Warn(message interface{}) {
+	easy.Warn(message)
+}
+
+func (easy *Easy) Error(message interface{}) {
+	easy.Error(message)
+}
+
+func (easy *Easy) Fatal(message interface{}) {
+	easy.Fatal(message)
+}
+
+func (easy *Easy) Debug(message interface{}) {
+	easy.Debug(message)
 }

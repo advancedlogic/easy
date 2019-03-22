@@ -24,40 +24,47 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func ReadLinesOfFile(filename string) []string {
+// ReadLinesOfFile open a file and split it into lines
+func ReadLinesOfFile(filename string) ([]string, error) {
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
-
+		return nil, err
 	}
 	lines := strings.Split(string(content), "\n")
-	return lines
+	return lines, nil
 }
 
+// TimeInSeconds return a timestamp in seconds
 func TimeInSeconds() int64 {
 	now := time.Now()
 	return now.Unix()
 }
 
+// TimeInMilliseconds return a timestamp in milliseconds
 func TimeInMilliseconds() int64 {
 	now := time.Now()
 	return int64(now.UnixNano() / 1000000)
 }
 
+// TimeInNanoseconds return a timestamp in nanoseconds
 func TimeInNanoseconds() int64 {
 	now := time.Now()
 	return now.UnixNano()
 }
 
+// YYYYMMDDHH return a date with hour granularity
 func YYYYMMDDHH() string {
 	now := time.Now()
 	return fmt.Sprintf("%d%02d%02d%02d", now.Year(), now.Month(), now.Day(), now.Hour())
 }
 
+// YYYYMMDD return a date
 func YYYYMMDD() string {
 	now := time.Now()
 	return fmt.Sprintf("%d%02d%02d", now.Year(), now.Month(), now.Day())
 }
 
+// Try is an attempt to simulate try/catch
 func Try(body func(), handler func(interface{})) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -67,11 +74,13 @@ func Try(body func(), handler func(interface{})) {
 	body()
 }
 
-func eb64(s string) string {
+// EB64 return an encoded base64 string
+func EB64(s string) string {
 	return base64.URLEncoding.EncodeToString([]byte(s))
 }
 
-func db64(s string) string {
+//DB64 return a decoded string from a base64 string
+func DB64(s string) string {
 	output, _ := base64.URLEncoding.DecodeString(s)
 	return string(output)
 }
@@ -81,6 +90,7 @@ func stringTimestamp() string {
 	return strconv.FormatInt(now, 10)
 }
 
+// String2Milliseconds return a timestamp in milliseconds given a humanize time (e.g. 1s, 1h ...)
 func String2Milliseconds(t string) int {
 	last := t[len(t)-1]
 	digits := t[0 : len(t)-1]
@@ -99,15 +109,17 @@ func String2Milliseconds(t string) int {
 	}
 }
 
+// UUID() return a random Unique identifier
 func UUID() string {
 	u := uuid.New()
 	return u.String()
 }
 
+// SHA1 hashes a string in SHA1
 func SHA1(str string) string {
 	hasher := sha1.New()
 	hasher.Write([]byte(str))
-	sha := eb64(string(hasher.Sum(nil)))
+	sha := EB64(string(hasher.Sum(nil)))
 	return sha
 }
 
@@ -132,6 +144,7 @@ var charsets = map[string]encoding.Encoding{
 	"windows-1252": charmap.Windows1252,
 }
 
+// DetectContentCharset try to guess the charset of the given reader
 func DetectContentCharset(body io.Reader) string {
 	r := bufio.NewReader(body)
 	if data, err := r.Peek(1024); err == nil {
@@ -154,6 +167,7 @@ func Reader(charset string, input io.Reader) (io.Reader, error) {
 	return nil, fmt.Errorf("unhandled charset %q", charset)
 }
 
+// Shuffle randomize the order of a given array
 func Shuffle(vals []string) {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
 	for len(vals) > 0 {

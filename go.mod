@@ -13,4 +13,5 @@ require (
 	github.com/zsais/go-gin-prometheus v0.0.0-20181030200533-58963fb32f54
 	golang.org/x/net v0.0.0-20181201002055-351d144fa1fc
 	golang.org/x/text v0.3.0
+	gopkg.in/go-playground/assert.v1 v1.2.1
 )

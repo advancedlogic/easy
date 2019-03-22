@@ -64,7 +64,14 @@ func (n *Nats) Connect() error {
 }
 
 func (n *Nats) Publish(topic string, message interface{}) error {
-	return n.conn.Publish(topic, message.([]byte))
+	var m []byte
+	switch message.(type) {
+	case string:
+		m = []byte(message.(string))
+	default:
+		m = message.([]byte)
+	}
+	return n.conn.Publish(topic, m)
 }
 
 func (n *Nats) Subscribe(topic string, handler interface{}) error {

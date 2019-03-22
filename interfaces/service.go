@@ -33,4 +33,10 @@ type Service interface {
 	Publish(string, interface{}) error
 	//Store
 
+	//Log
+	Info(interface{})
+	Warn(interface{})
+	Error(interface{})
+	Fatal(interface{})
+	Debug(interface{})
 }
