@@ -56,7 +56,7 @@ func (r *RSS) download(source RSSSource) []string {
 	for _, url := range source.Urls {
 		feed, err := fp.ParseURL(url)
 		if err != nil {
-			r.Service.Error(err.Error())
+			r.Error(err.Error())
 			continue
 		}
 

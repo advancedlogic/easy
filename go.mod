@@ -1,7 +1,6 @@
 module github.com/advancedlogic/easy
 
 require (
-	github.com/advancedlogic/goms v0.0.0-20190318063435-67991ef82df1
 	github.com/ankit-arora/go-utils v0.0.0-20170709111640-7f375a7a7b81
 	github.com/gin-gonic/gin v1.3.0
 	github.com/google/uuid v1.1.1
