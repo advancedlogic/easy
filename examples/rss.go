@@ -109,7 +109,7 @@ func main() {
 		rss := NewRSS()
 		err := rss.Init(microservice)
 		if err != nil {
-			microservice.Fatal(err)
+			panic(err)
 		}
 
 		process := func(source RSSSource) error {

@@ -1,0 +1,6 @@
+{
+  "endpoint": {
+    "request" : "ping",
+    "response" : "pong"
+  }
+}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/advancedlogic/easy/commons"
 	. "github.com/advancedlogic/easy/easy"
 	"github.com/gin-gonic/gin"
 	"github.com/nats-io/go-nats"
@@ -9,28 +10,29 @@ import (
 
 func main() {
 	microservice, err := NewEasy(
+		WithDefaultConfiguration(),
 		WithDefaultRegistry(),
 		WithDefaultBroker(),
 		WithDefaultTransport())
 
 	if err != nil {
-		microservice.Fatal(err)
+		panic(err)
 	}
 
-	if err := microservice.Subscribe("test", func(msg *nats.Msg) {
-
+	if err := microservice.Broker().Subscribe("test", func(msg *nats.Msg) {
+		microservice.Info(string(msg.Data))
 	}); err != nil {
 		microservice.Fatal(err)
 	}
 
-	if err := microservice.GET("/ping", func(c *gin.Context) {
-		c.String(http.StatusOK, "pong")
+	endpointRequest := microservice.Configuration().GetStringOrDefault("endpoint.request", "ping")
+	endpointResponse := microservice.Configuration().GetStringOrDefault("endpoing.response", "pong")
+
+	if err := microservice.Transport().Handler(commons.ModeGet, endpointRequest, func(c *gin.Context) {
+		c.String(http.StatusOK, endpointResponse)
 	}); err != nil {
 		microservice.Fatal(err)
 	}
 
 	microservice.Run()
-	if err != nil {
-		microservice.Fatal(err)
-	}
 }
