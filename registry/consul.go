@@ -32,6 +32,16 @@ func WithName(name string) Option {
 	}
 }
 
+func WithAddress(address string) Option {
+	return func(c *Consul) error {
+		if address != "" {
+			c.address = address
+			return nil
+		}
+		return errors.New("address cannot be empty")
+	}
+}
+
 func WithPort(port int) Option {
 	return func(c *Consul) error {
 		if port > 0 {
@@ -40,6 +50,37 @@ func WithPort(port int) Option {
 		}
 
 		return errors.New("port cannot be zero")
+	}
+}
+
+func WithUsername(username string) Option {
+	return func(c *Consul) error {
+		if username != "" {
+			c.username = username
+			return nil
+		}
+		return errors.New("username cannot be empty")
+	}
+}
+
+func WithPassword(password string) Option {
+	return func(c *Consul) error {
+		if password != "" {
+			c.password = password
+			return nil
+		}
+		return errors.New("password cannot be empty")
+	}
+}
+
+func WithCredentials(username, password string) Option {
+	return func(c *Consul) error {
+		if username != "" && password != "" {
+			c.username = username
+			c.password = password
+			return nil
+		}
+		return errors.New("username/password cannot be empty")
 	}
 }
 
@@ -82,7 +123,10 @@ func WithLogger(logger *logrus.Logger) Option {
 type Consul struct {
 	id             string
 	name           string
+	address        string
 	port           int
+	username       string
+	password       string
 	interval       string
 	timeout        string
 	healthEndpoint string
@@ -94,7 +138,10 @@ func NewConsul(options ...Option) (*Consul, error) {
 	c := &Consul{
 		id:             "default",
 		name:           "default",
+		address:        "localhost:8500",
 		port:           8080,
+		username:       "",
+		password:       "",
 		interval:       "3s",
 		timeout:        "5s",
 		healthEndpoint: "",
@@ -119,6 +166,13 @@ func (c *Consul) Register() error {
 	}
 
 	config := api.DefaultConfig()
+	config.Address = c.address
+	if c.username != "" && c.password != "" {
+		config.HttpAuth = &api.HttpBasicAuth{
+			Username: c.username,
+			Password: c.password,
+		}
+	}
 	consul, err := api.NewClient(config)
 	if err != nil {
 		log.Fatalln(err)

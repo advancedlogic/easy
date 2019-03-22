@@ -4,12 +4,14 @@ import (
 	"errors"
 	"github.com/advancedlogic/easy/broker"
 	"github.com/advancedlogic/easy/commons"
+	"github.com/advancedlogic/easy/configuration"
 	"github.com/advancedlogic/easy/interfaces"
 	"github.com/advancedlogic/easy/registry"
 	"github.com/advancedlogic/easy/transport"
 	"github.com/ankit-arora/go-utils/go-shutdown-hook"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"github.com/x-cray/logrus-prefixed-formatter"
 )
 
 type Option func(*Easy) error
@@ -19,13 +21,13 @@ type Easy struct {
 	name      string
 	isRunning bool
 
-	registry  interfaces.Registry
-	transport interfaces.Transport
-	broker    interfaces.Broker
-	client    interfaces.Client
-	store     interfaces.Store
-	processor interfaces.Processor
-
+	registry      interfaces.Registry
+	transport     interfaces.Transport
+	broker        interfaces.Broker
+	client        interfaces.Client
+	store         interfaces.Store
+	processor     interfaces.Processor
+	configuration interfaces.Configuration
 	*logrus.Logger
 }
 
@@ -44,7 +46,7 @@ func WithID(id string) Option {
 func WithName(name string) Option {
 	return func(easy *Easy) error {
 		if name == "" {
-			return errors.New("Name cannot be empty")
+			return errors.New("name cannot be empty")
 		}
 		easy.name = name
 		return nil
@@ -91,6 +93,24 @@ func WithDefaultBroker() Option {
 		}
 		easy.broker = b
 		return nil
+	}
+}
+
+func WithDefaultConfiguration() Option {
+	return func(easy *Easy) error {
+		c, err := configuration.NewViperConfiguration(
+			configuration.WithName(easy.name),
+			configuration.WithConfigFile(easy.name))
+		if err != nil {
+			return err
+		}
+		err = c.Open()
+		if err != nil {
+			return err
+		}
+		easy.configuration = c
+		return nil
+
 	}
 }
 
@@ -166,22 +186,97 @@ func WithProcessor(processor interfaces.Processor) Option {
 	}
 }
 
+func WithConfiguration(configuration interfaces.Configuration) Option {
+	return func(easy *Easy) error {
+		if configuration != nil {
+			easy.configuration = configuration
+			return nil
+		}
+		return errors.New("configuration cannot be nil")
+	}
+}
+
+func WithLocalConfiguration() Option {
+	return func(easy *Easy) error {
+		if easy.name != "" {
+			conf, err := configuration.NewViperConfiguration(
+				configuration.WithName(easy.name),
+				configuration.WithConfigFile(easy.name),
+				configuration.WithLogger(easy.Logger))
+			if err != nil {
+				return err
+			}
+			if err := conf.Open(); err != nil {
+				return err
+			}
+			easy.configuration = conf
+		}
+		return errors.New("name cannot be empty")
+	}
+}
+
+func WithRemoteConfiguration(provider, uri string) Option {
+	return func(easy *Easy) error {
+		if provider != "" && uri != "" {
+			conf, err := configuration.NewViperConfiguration(
+				configuration.WithName(easy.name),
+				configuration.WithProvider(provider),
+				configuration.WithURI(uri),
+				configuration.WithLogger(easy.Logger))
+			if err != nil {
+				return nil
+			}
+			if err := conf.Open(); err != nil {
+				return err
+			}
+			easy.configuration = conf
+		}
+
+		return errors.New("provider and uri cannot be empty")
+	}
+}
+
 //NewEasy create a new µs according to the passed options
 //WithID: default random
 //WithName: default "default"
 func NewEasy(options ...Option) (*Easy, error) {
-	//Default values
 	easy := &Easy{
 		id:     uuid.New().String(),
-		name:   "default",
 		Logger: logrus.New(),
+		name:   "default",
 	}
+
+	formatter := new(prefixed.TextFormatter)
+	formatter.FullTimestamp = true
+	easy.Formatter = formatter
+
 	for _, option := range options {
 		err := option(easy)
 		if err != nil {
 			return nil, err
 		}
 	}
+
+	logLevel := "info"
+	if easy.configuration != nil {
+		logLevel = easy.configuration.GetStringOrDefault("log.level", "info")
+		if timestamp := easy.configuration.GetStringOrDefault("log.timestamp", ""); timestamp != "" {
+			formatter.TimestampFormat = timestamp
+		}
+	}
+	switch logLevel {
+	case "debug":
+		easy.Level = logrus.DebugLevel
+	case "info":
+		easy.Level = logrus.InfoLevel
+	case "warn":
+		easy.Level = logrus.WarnLevel
+	case "error":
+		easy.Level = logrus.ErrorLevel
+	default:
+		easy.Level = logrus.InfoLevel
+	}
+
 	return easy, nil
 }
 
