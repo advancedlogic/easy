@@ -304,21 +304,21 @@ func (easy *Easy) Publish(endpoint string, msg interface{}) error {
 }
 
 func (easy *Easy) Info(message interface{}) {
-	easy.Info(message)
+	easy.Logger.Info(message)
 }
 
 func (easy *Easy) Warn(message interface{}) {
-	easy.Warn(message)
+	easy.Logger.Warn(message)
 }
 
 func (easy *Easy) Error(message interface{}) {
-	easy.Error(message)
+	easy.Logger.Error(message)
 }
 
 func (easy *Easy) Fatal(message interface{}) {
-	easy.Fatal(message)
+	easy.Logger.Fatal(message)
 }
 
 func (easy *Easy) Debug(message interface{}) {
-	easy.Debug(message)
+	easy.Logger.Debug(message)
 }

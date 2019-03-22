@@ -14,12 +14,12 @@ func TestReadLinesOfFile(t *testing.T) {
 func TestEB64(t *testing.T) {
 	str := EB64("test")
 	assert.NotEqual(t, str, "test")
-	assert.Equal(t, str, "dGVzdA==---")
+	assert.Equal(t, str, "dGVzdA==")
 }
 
 func TestDB64(t *testing.T) {
-	str := DB64("dGVzdA==---")
-	assert.NotEqual(t, str, "dGVzdA==---")
+	str := DB64("dGVzdA==")
+	assert.NotEqual(t, str, "dGVzdA==")
 	assert.Equal(t, str, "test")
 }
 

@@ -4,9 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/advancedlogic/easy/commons"
+	. "github.com/advancedlogic/easy/easy"
 	"github.com/advancedlogic/easy/interfaces"
+	"github.com/gin-gonic/gin"
 	"github.com/mmcdole/gofeed"
+	"github.com/nats-io/go-nats"
 	"io/ioutil"
+	"net/http"
 	"strings"
 )
 
@@ -56,13 +60,13 @@ func (r *RSS) download(source RSSSource) []string {
 	for _, url := range source.Urls {
 		feed, err := fp.ParseURL(url)
 		if err != nil {
-			r.Error(err.Error())
+			r.Error(err)
 			continue
 		}
 
 		bstr, err := json.Marshal(feed)
 		if err != nil {
-			r.Error(err.Error())
+			r.Error(err)
 			continue
 		}
 		feeds = append(feeds, string(bstr))
@@ -82,7 +86,7 @@ func (r *RSS) reload(source RSSSource) error {
 		if strings.HasSuffix(name, ".rss") {
 			blines, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", source.Folder, file.Name()))
 			if err != nil {
-				r.Error(err.Error())
+				r.Error(err)
 				continue
 			}
 			lines := strings.Split(string(blines), "\n")
@@ -94,4 +98,64 @@ func (r *RSS) reload(source RSSSource) error {
 
 	source.Urls = urls
 	return nil
+}
+
+func main() {
+	if microservice, err := NewEasy(
+		WithName("rss"),
+		WithDefaultRegistry(),
+		WithDefaultBroker(),
+		WithDefaultTransport()); err == nil {
+		rss := NewRSS()
+		err := rss.Init(microservice)
+		if err != nil {
+			microservice.Fatal(err)
+		}
+
+		process := func(source RSSSource) error {
+			feeds, err := rss.Process(source)
+			if err != nil {
+				return err
+			}
+
+			for _, feed := range feeds.([]string) {
+				microservice.Info(feed)
+			}
+			return nil
+		}
+
+		if err := rss.POST("/api/v1/rss", func(c *gin.Context) {
+			var rssSource RSSSource
+			err = c.BindJSON(&rssSource)
+			if err != nil {
+				c.JSON(http.StatusBadGateway, gin.H{
+					"error": err.Error(),
+				})
+			}
+			if err := process(rssSource); err != nil {
+				c.JSON(http.StatusBadGateway, gin.H{
+					"error": err.Error(),
+				})
+			}
+		}); err != nil {
+			microservice.Error(err)
+		}
+
+		if err := rss.Subscribe("rss", func(msg *nats.Msg) {
+			var rssSource RSSSource
+			err = json.Unmarshal(msg.Data, &rssSource)
+			if err != nil {
+				microservice.Error(err)
+				return
+			}
+			if err := process(rssSource); err != nil {
+				microservice.Error(err)
+			}
+
+		}); err != nil {
+			microservice.Error(err)
+		}
+
+		microservice.Run()
+	}
 }
