@@ -314,6 +314,10 @@ func (easy *Easy) Store() interfaces.Store {
 	return easy.store
 }
 
+func (easy *Easy) Configuration() interfaces.Configuration {
+	return easy.configuration
+}
+
 func (easy *Easy) Run() {
 	go_shutdown_hook.ADD(func() {
 		easy.Stop()
