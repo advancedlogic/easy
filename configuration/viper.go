@@ -44,17 +44,6 @@ func WithURI(uri string) Option {
 	}
 }
 
-func WithConfigFile(configFile string) Option {
-	return func(v *ViperConfiguration) error {
-		if configFile != "" {
-			v.local = configFile
-			return nil
-		}
-
-		return errors.New("config file cannot be empty")
-	}
-}
-
 func WithLogger(logger *logrus.Logger) Option {
 	return func(v *ViperConfiguration) error {
 		if logger != nil {
@@ -73,7 +62,6 @@ type ViperConfiguration struct {
 	name     string
 	provider string
 	uri      string
-	local    string
 }
 
 func NewViperConfiguration(options ...Option) (*ViperConfiguration, error) {
@@ -169,8 +157,4 @@ func (v *ViperConfiguration) GetStringOrDefault(path string, defaultValue string
 		return value
 	}
 	return defaultValue
-}
-
-func (v *ViperConfiguration) Log() *logrus.Logger {
-	return v.Logger
 }

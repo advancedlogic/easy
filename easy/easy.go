@@ -99,8 +99,7 @@ func WithDefaultBroker() Option {
 func WithDefaultConfiguration() Option {
 	return func(easy *Easy) error {
 		c, err := configuration.NewViperConfiguration(
-			configuration.WithName(easy.name),
-			configuration.WithConfigFile(easy.name))
+			configuration.WithName(easy.name))
 		if err != nil {
 			return err
 		}
@@ -201,7 +200,6 @@ func WithLocalConfiguration() Option {
 		if easy.name != "" {
 			conf, err := configuration.NewViperConfiguration(
 				configuration.WithName(easy.name),
-				configuration.WithConfigFile(easy.name),
 				configuration.WithLogger(easy.Logger))
 			if err != nil {
 				return err

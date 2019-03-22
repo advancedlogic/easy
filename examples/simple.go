@@ -26,7 +26,7 @@ func main() {
 	}
 
 	endpointRequest := microservice.Configuration().GetStringOrDefault("endpoint.request", "ping")
-	endpointResponse := microservice.Configuration().GetStringOrDefault("endpoing.response", "pong")
+	endpointResponse := microservice.Configuration().GetStringOrDefault("endpoint.response", "pong")
 
 	if err := microservice.Transport().Handler(commons.ModeGet, endpointRequest, func(c *gin.Context) {
 		c.String(http.StatusOK, endpointResponse)
