@@ -19,6 +19,7 @@ require (
 	github.com/nats-io/go-nats v1.7.2
 	github.com/nats-io/nkeys v0.0.2 // indirect
 	github.com/nats-io/nuid v1.0.0 // indirect
+	github.com/pkg/errors v0.8.1 // indirect
 	github.com/prometheus/client_golang v0.9.2 // indirect
 	github.com/sirupsen/logrus v1.4.0
 	github.com/spf13/cobra v0.0.3 // indirect
@@ -26,9 +27,11 @@ require (
 	github.com/stretchr/testify v1.3.0
 	github.com/toorop/gin-logrus v0.0.0-20180629064933-5d05462a6ed8
 	github.com/ugorji/go/codec v0.0.0-20190320090025-2dc34c0b8780 // indirect
+	github.com/volatiletech/authboss v2.2.0+incompatible // indirect
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
 	github.com/zsais/go-gin-prometheus v0.0.0-20181030200533-58963fb32f54
-	golang.org/x/net v0.0.0-20181201002055-351d144fa1fc
+	golang.org/x/net v0.0.0-20190108225652-1e06a53dbb7e
+	golang.org/x/oauth2 v0.0.0-20190319182350-c85d3e98c914 // indirect
 	golang.org/x/text v0.3.0
 	gopkg.in/go-playground/assert.v1 v1.2.1
 	gopkg.in/go-playground/validator.v8 v8.18.2 // indirect
