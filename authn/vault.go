@@ -124,7 +124,7 @@ func (v *Vault) Login(username, password string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	if commons.ComparePasswords(user.Password, []byte(password)) {
+	if !commons.ComparePasswords(user.Password, []byte(password)) {
 		return nil, errors.New("wrong username or password")
 	}
 	return user, nil
