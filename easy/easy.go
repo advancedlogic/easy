@@ -118,19 +118,18 @@ func WithDefaultConfiguration() Option {
 	}
 }
 
-func WithDefaultAuthN(token string) Option {
+func WithDefaultAuthN(folder string) Option {
 	return func(easy *Easy) error {
-		if token != "" {
-			c, err := authn.NewVault(
-				authn.WithServers("http://localhost:2222"),
-				authn.WithToken(token))
+		if folder != "" {
+			c, err := authn.NewFS(
+				authn.WithFolder(folder))
 			if err != nil {
 				return err
 			}
 			easy.authn = c
 			return nil
 		}
-		return errors.New("token cannot be empty")
+		return errors.New("folder cannot be empty")
 	}
 }
 
@@ -392,7 +391,7 @@ func (easy *Easy) Run() {
 		easy.Info("authn setup")
 
 		register := func(c *gin.Context) {
-			var user authn.User
+			var user authn.FSUser
 			err := c.BindJSON(&user)
 			if err != nil {
 				c.String(http.StatusBadGateway, err.Error())
@@ -403,11 +402,11 @@ func (easy *Easy) Run() {
 				c.String(http.StatusBadGateway, err.Error())
 				return
 			}
-			c.JSON(http.StatusOK, response.(authn.User))
+			c.JSON(http.StatusOK, response)
 		}
 
 		login := func(c *gin.Context) {
-			var user authn.User
+			var user authn.FSUser
 			err := c.BindJSON(&user)
 			if err != nil {
 				c.String(http.StatusBadGateway, err.Error())

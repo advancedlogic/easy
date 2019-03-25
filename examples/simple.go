@@ -13,7 +13,7 @@ func main() {
 		WithDefaultConfiguration(),
 		WithDefaultRegistry(),
 		WithDefaultBroker(),
-		WithDefaultAuthN("s.AGA6ZIXMsHnR8806EV70oUhY"),
+		WithDefaultAuthN("fs"),
 		WithDefaultTransport())
 
 	if err != nil {

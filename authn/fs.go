@@ -76,6 +76,7 @@ func (f *FS) Register(username, password string) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
+		user.Password = ""
 		return user, nil
 	}
 	return nil, errors.New("username and password cannot be empty")
@@ -93,14 +94,10 @@ func (f *FS) Login(username, password string) (interface{}, error) {
 			return nil, err
 		}
 
-		epassword, err := commons.HashAndSalt(password)
-		if err != nil {
-			return nil, err
-		}
-
-		if epassword != user.Password {
+		if commons.ComparePasswords(user.Password, []byte(password)) {
 			return nil, errors.New("wrong username or password")
 		}
+		user.Password = ""
 		return user, nil
 	}
 	return nil, errors.New("username and password cannot be empty")

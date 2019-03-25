@@ -3,12 +3,13 @@ package authn
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/advancedlogic/easy/commons"
 	"github.com/shoenig/vaultapi"
-	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
-type User struct {
+type VaultUser struct {
 	Username  string   `json:"username"`
 	Password  string   `json:"password"`
 	Timestamp int64    `json:"timestamp"`
@@ -16,7 +17,7 @@ type User struct {
 	Enabled   bool     `json:"enabled"`
 }
 
-type Option func(*Vault) error
+type VaultOption func(*Vault) error
 
 type Vault struct {
 	token               string
@@ -25,7 +26,7 @@ type Vault struct {
 	skipTLSVerification bool
 }
 
-func NewVault(options ...Option) (*Vault, error) {
+func NewVault(options ...VaultOption) (*Vault, error) {
 	v := &Vault{
 		token:               "",
 		servers:             []string{"http://localhost:8200"},
@@ -42,7 +43,7 @@ func NewVault(options ...Option) (*Vault, error) {
 	return v, nil
 }
 
-func WithToken(token string) Option {
+func WithToken(token string) VaultOption {
 	return func(vault *Vault) error {
 		if token != "" {
 			vault.token = token
@@ -52,7 +53,7 @@ func WithToken(token string) Option {
 	}
 }
 
-func WithServers(servers ...string) Option {
+func WithServers(servers ...string) VaultOption {
 	return func(vault *Vault) error {
 		if len(servers) > 0 {
 			for _, server := range servers {
@@ -80,11 +81,11 @@ func (v *Vault) close(client vaultapi.Client) error {
 }
 
 func (v *Vault) Register(username, password string) (interface{}, error) {
-	epassword, err := v.hashAndSalt(password)
+	epassword, err := commons.HashAndSalt(password)
 	if err != nil {
 		return nil, err
 	}
-	user := User{
+	user := VaultUser{
 		Username:  username,
 		Password:  epassword,
 		Groups:    []string{"user"},
@@ -101,7 +102,7 @@ func (v *Vault) Register(username, password string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = client.Put(username, string(jsonUser))
+	err = client.Put(fmt.Sprintf("/cubbyhole/%s", username), string(jsonUser))
 	if err != nil {
 		return nil, err
 	}
@@ -114,20 +115,20 @@ func (v *Vault) Login(username, password string) (interface{}, error) {
 		return nil, err
 	}
 	defer v.close(client)
-	jsonUser, err := client.Get(username)
+	jsonUser, err := client.Get(fmt.Sprintf("/cubbyhole/%s", username))
 	if err != nil {
 		return nil, err
 	}
-	var user User
+	var user VaultUser
 	err = json.Unmarshal([]byte(jsonUser), &user)
 	if err != nil {
 		return nil, err
 	}
-	epassword, err := v.hashAndSalt(password)
+	epassword, err := commons.HashAndSalt(password)
 	if err != nil {
 		return nil, err
 	}
-	if user.Password != epassword {
+	if commons.ComparePasswords(user.Password, []byte(password)) {
 		return nil, errors.New("wrong username or password")
 	}
 	return user, nil
@@ -143,7 +144,7 @@ func (v *Vault) Delete(username string) error {
 		return err
 	}
 	defer v.close(client)
-	err = client.Delete(username)
+	err = client.Delete(fmt.Sprintf("/cubbyhole/%s", username))
 	if err != nil {
 		return err
 	}
@@ -152,13 +153,4 @@ func (v *Vault) Delete(username string) error {
 
 func (v *Vault) Reset(username, password string) (interface{}, error) {
 	return v.Register(username, password)
-}
-
-func (v *Vault) hashAndSalt(password string) (string, error) {
-	bpassword := []byte(password)
-	hash, err := bcrypt.GenerateFromPassword(bpassword, bcrypt.MinCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hash), nil
 }

@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/charmap"
@@ -14,6 +15,7 @@ import (
 	"golang.org/x/text/encoding/traditionalchinese"
 	"io"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -176,4 +178,24 @@ func Shuffle(vals []string) {
 		vals[n-1], vals[randIndex] = vals[randIndex], vals[n-1]
 		vals = vals[:n-1]
 	}
+}
+
+func HashAndSalt(password string) (string, error) {
+	bpassword := []byte(password)
+	hash, err := bcrypt.GenerateFromPassword(bpassword, bcrypt.MinCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
+}
+
+func ComparePasswords(hashedPwd string, plainPwd []byte) bool {
+	byteHash := []byte(hashedPwd)
+	err := bcrypt.CompareHashAndPassword(byteHash, plainPwd)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+
+	return true
 }
