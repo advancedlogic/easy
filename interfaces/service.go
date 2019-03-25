@@ -19,7 +19,9 @@ type Service interface {
 	Broker() Broker
 	Client() Client
 	Store() Store
+	Processor() Processor
 	Configuration() Configuration
+	AuthN() AuthN
 
 	//Transport Handler (rest) Helpers
 	Handler(string, string, interface{}) error

@@ -2,6 +2,7 @@ package easy
 
 import (
 	"errors"
+	"github.com/advancedlogic/easy/authn"
 	"github.com/advancedlogic/easy/broker"
 	"github.com/advancedlogic/easy/commons"
 	"github.com/advancedlogic/easy/configuration"
@@ -9,9 +10,12 @@ import (
 	"github.com/advancedlogic/easy/registry"
 	"github.com/advancedlogic/easy/transport"
 	"github.com/ankit-arora/go-utils/go-shutdown-hook"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/x-cray/logrus-prefixed-formatter"
+	"net/http"
+	"plugin"
 )
 
 type Option func(*Easy) error
@@ -28,6 +32,7 @@ type Easy struct {
 	store         interfaces.Store
 	processor     interfaces.Processor
 	configuration interfaces.Configuration
+	authn         interfaces.AuthN
 	*logrus.Logger
 }
 
@@ -113,6 +118,22 @@ func WithDefaultConfiguration() Option {
 	}
 }
 
+func WithDefaultAuthN(token string) Option {
+	return func(easy *Easy) error {
+		if token != "" {
+			c, err := authn.NewVault(
+				authn.WithServers("http://localhost:2222"),
+				authn.WithToken(token))
+			if err != nil {
+				return err
+			}
+			easy.authn = c
+			return nil
+		}
+		return errors.New("token cannot be empty")
+	}
+}
+
 func WithHandler(mode, route string, handler interface{}) Option {
 	return func(easy *Easy) error {
 		return easy.transport.Handler(mode, route, handler)
@@ -182,6 +203,29 @@ func WithProcessor(processor interfaces.Processor) Option {
 			return nil
 		}
 		return errors.New("processor cannot be nil")
+	}
+}
+
+func WithPlugin(lib, name string) Option {
+	return func(easy *Easy) error {
+		if lib != "" && name != "" {
+			plug, err := plugin.Open(lib)
+			if err != nil {
+				return err
+			}
+			symPlugin, err := plug.Lookup(name)
+			if err != nil {
+				return err
+			}
+			var processor interfaces.Processor
+			processor, ok := symPlugin.(interfaces.Processor)
+			if !ok {
+				return errors.New("unexpected type from module symbol")
+			}
+			easy.processor = processor
+			return nil
+		}
+		return errors.New("lib and name cannot be empty")
 	}
 }
 
@@ -316,6 +360,14 @@ func (easy *Easy) Configuration() interfaces.Configuration {
 	return easy.configuration
 }
 
+func (easy *Easy) Processor() interfaces.Processor {
+	return easy.processor
+}
+
+func (easy *Easy) AuthN() interfaces.AuthN {
+	return easy.authn
+}
+
 func (easy *Easy) Run() {
 	go_shutdown_hook.ADD(func() {
 		easy.Stop()
@@ -335,6 +387,62 @@ func (easy *Easy) Run() {
 			easy.Fatal(err)
 		}
 	}
+
+	if easy.authn != nil {
+		easy.Info("authn setup")
+
+		register := func(c *gin.Context) {
+			var user authn.User
+			err := c.BindJSON(&user)
+			if err != nil {
+				c.String(http.StatusBadGateway, err.Error())
+				return
+			}
+			response, err := easy.authn.Register(user.Username, user.Password)
+			if err != nil {
+				c.String(http.StatusBadGateway, err.Error())
+				return
+			}
+			c.JSON(http.StatusOK, response.(authn.User))
+		}
+
+		login := func(c *gin.Context) {
+			var user authn.User
+			err := c.BindJSON(&user)
+			if err != nil {
+				c.String(http.StatusBadGateway, err.Error())
+				return
+			}
+			response, err := easy.authn.Login(user.Username, user.Password)
+			if err != nil {
+				c.String(http.StatusBadGateway, err.Error())
+			}
+			c.JSON(http.StatusOK, response)
+		}
+
+		logout := func(c *gin.Context) {
+			username := c.Param(":username")
+			err := easy.authn.Logout(username)
+			if err != nil {
+				c.String(http.StatusBadGateway, err.Error())
+				return
+			}
+			c.String(http.StatusOK, "")
+		}
+
+		if err := easy.transport.Handler("post", "/register", register); err != nil {
+			easy.Fatal(err)
+		}
+
+		if err := easy.transport.Handler("post", "/login", login); err != nil {
+			easy.Fatal(err)
+		}
+
+		if err := easy.transport.Handler("post", "/logout", logout); err != nil {
+			easy.Fatal(err)
+		}
+	}
+
 	if easy.transport != nil {
 		easy.Info("transport setup")
 		err := easy.transport.Run()

@@ -5,5 +5,5 @@ type AuthN interface {
 	Login(string, string) (interface{}, error)
 	Logout(string) error
 	Delete(string) error
-	Reset(string) (interface{}, error)
+	Reset(string, string) (interface{}, error)
 }
