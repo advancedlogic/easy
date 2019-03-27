@@ -101,7 +101,7 @@ func (r *RSS) reload(source RSSSource) error {
 }
 
 func main() {
-	if microservice, err := NewEasy(
+	if microservice, err := New(
 		WithName("rss"),
 		WithDefaultRegistry(),
 		WithDefaultBroker(),

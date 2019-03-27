@@ -280,7 +280,7 @@ func WithRemoteConfiguration(provider, uri string) Option {
 //NewEasy create a new µs according to the passed options
 //WithID: default random
 //WithName: default "default"
-func NewEasy(options ...Option) (*Easy, error) {
+func New(options ...Option) (*Easy, error) {
 	easy := &Easy{
 		id:     uuid.New().String(),
 		Logger: logrus.New(),
