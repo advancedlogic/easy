@@ -1,8 +1,9 @@
-package registry
+package consul
 
 import (
 	"errors"
 	"fmt"
+	"github.com/advancedlogic/easy/interfaces"
 	"github.com/sirupsen/logrus"
 	"log"
 	"os"
@@ -10,11 +11,10 @@ import (
 	api "github.com/hashicorp/consul/api"
 )
 
-type Option func(*Consul) error
-
-func WithID(id string) Option {
-	return func(c *Consul) error {
+func WithID(id string) interfaces.RegistryOption {
+	return func(i interfaces.Registry) error {
 		if id != "" {
+			c := i.(*Consul)
 			c.id = id
 			return nil
 		}
@@ -22,9 +22,10 @@ func WithID(id string) Option {
 	}
 }
 
-func WithName(name string) Option {
-	return func(c *Consul) error {
+func WithName(name string) interfaces.RegistryOption {
+	return func(i interfaces.Registry) error {
 		if name != "" {
+			c := i.(*Consul)
 			c.name = name
 			return nil
 		}
@@ -32,9 +33,10 @@ func WithName(name string) Option {
 	}
 }
 
-func WithAddress(address string) Option {
-	return func(c *Consul) error {
+func WithAddress(address string) interfaces.RegistryOption {
+	return func(i interfaces.Registry) error {
 		if address != "" {
+			c := i.(*Consul)
 			c.address = address
 			return nil
 		}
@@ -42,9 +44,10 @@ func WithAddress(address string) Option {
 	}
 }
 
-func WithPort(port int) Option {
-	return func(c *Consul) error {
+func WithPort(port int) interfaces.RegistryOption {
+	return func(i interfaces.Registry) error {
 		if port > 0 {
+			c := i.(*Consul)
 			c.port = port
 			return nil
 		}
@@ -53,9 +56,10 @@ func WithPort(port int) Option {
 	}
 }
 
-func WithUsername(username string) Option {
-	return func(c *Consul) error {
+func WithUsername(username string) interfaces.RegistryOption {
+	return func(i interfaces.Registry) error {
 		if username != "" {
+			c := i.(*Consul)
 			c.username = username
 			return nil
 		}
@@ -63,9 +67,10 @@ func WithUsername(username string) Option {
 	}
 }
 
-func WithPassword(password string) Option {
-	return func(c *Consul) error {
+func WithPassword(password string) interfaces.RegistryOption {
+	return func(i interfaces.Registry) error {
 		if password != "" {
+			c := i.(*Consul)
 			c.password = password
 			return nil
 		}
@@ -73,9 +78,10 @@ func WithPassword(password string) Option {
 	}
 }
 
-func WithCredentials(username, password string) Option {
-	return func(c *Consul) error {
+func WithCredentials(username, password string) interfaces.RegistryOption {
+	return func(i interfaces.Registry) error {
 		if username != "" && password != "" {
+			c := i.(*Consul)
 			c.username = username
 			c.password = password
 			return nil
@@ -84,9 +90,10 @@ func WithCredentials(username, password string) Option {
 	}
 }
 
-func WithInterval(interval string) Option {
-	return func(c *Consul) error {
+func WithInterval(interval string) interfaces.RegistryOption {
+	return func(i interfaces.Registry) error {
 		if interval != "" {
+			c := i.(*Consul)
 			c.interval = interval
 			return nil
 		}
@@ -94,9 +101,10 @@ func WithInterval(interval string) Option {
 	}
 }
 
-func WithTimeout(timeout string) Option {
-	return func(c *Consul) error {
+func WithTimeout(timeout string) interfaces.RegistryOption {
+	return func(i interfaces.Registry) error {
 		if timeout != "" {
+			c := i.(*Consul)
 			c.timeout = timeout
 			return nil
 		}
@@ -104,9 +112,10 @@ func WithTimeout(timeout string) Option {
 	}
 }
 
-func WithHealthEndpoint(endpoint string) Option {
-	return func(c *Consul) error {
+func WithHealthEndpoint(endpoint string) interfaces.RegistryOption {
+	return func(i interfaces.Registry) error {
 		if endpoint != "" {
+			c := i.(*Consul)
 			c.healthEndpoint = endpoint
 			return nil
 		}
@@ -114,8 +123,9 @@ func WithHealthEndpoint(endpoint string) Option {
 	}
 }
 
-func WithLogger(logger *logrus.Logger) Option {
-	return func(c *Consul) error {
+func WithLogger(logger *logrus.Logger) interfaces.RegistryOption {
+	return func(i interfaces.Registry) error {
+		c := i.(*Consul)
 		return c.WithLogger(logger)
 	}
 }
@@ -133,7 +143,7 @@ type Consul struct {
 	*logrus.Logger
 }
 
-func NewConsul(options ...Option) (*Consul, error) {
+func NewConsul(options ...interfaces.RegistryOption) (*Consul, error) {
 	//Default values first
 	c := &Consul{
 		id:             "default",

@@ -8,3 +8,5 @@ type Transport interface {
 	Middleware(interface{}) error
 	StaticFilesFolder(string, string) error
 }
+
+type TransportOption func(Transport) error

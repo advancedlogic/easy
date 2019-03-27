@@ -1,19 +1,19 @@
-package configuration
+package viper
 
 import (
 	"errors"
 	"fmt"
+	"github.com/advancedlogic/easy/interfaces"
 	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"time"
 )
 
-type Option func(*ViperConfiguration) error
-
-func WithName(name string) Option {
-	return func(v *ViperConfiguration) error {
+func WithName(name string) interfaces.ConfigurationOption {
+	return func(i interfaces.Configuration) error {
 		if name != "" {
+			v := i.(*Viper)
 			v.name = name
 			return nil
 		}
@@ -22,9 +22,10 @@ func WithName(name string) Option {
 	}
 }
 
-func WithProvider(provider string) Option {
-	return func(v *ViperConfiguration) error {
+func WithProvider(provider string) interfaces.ConfigurationOption {
+	return func(i interfaces.Configuration) error {
 		if provider != "" {
+			v := i.(*Viper)
 			v.provider = provider
 			return nil
 		}
@@ -33,9 +34,10 @@ func WithProvider(provider string) Option {
 	}
 }
 
-func WithURI(uri string) Option {
-	return func(v *ViperConfiguration) error {
+func WithURI(uri string) interfaces.ConfigurationOption {
+	return func(i interfaces.Configuration) error {
 		if uri != "" {
+			v := i.(*Viper)
 			v.uri = uri
 			return nil
 		}
@@ -44,9 +46,10 @@ func WithURI(uri string) Option {
 	}
 }
 
-func WithLogger(logger *logrus.Logger) Option {
-	return func(v *ViperConfiguration) error {
+func WithLogger(logger *logrus.Logger) interfaces.ConfigurationOption {
+	return func(i interfaces.Configuration) error {
 		if logger != nil {
+			v := i.(*Viper)
 			v.Logger = logger
 			return nil
 		}
@@ -55,7 +58,7 @@ func WithLogger(logger *logrus.Logger) Option {
 	}
 }
 
-type ViperConfiguration struct {
+type Viper struct {
 	*viper.Viper
 	*logrus.Logger
 
@@ -64,8 +67,8 @@ type ViperConfiguration struct {
 	uri      string
 }
 
-func NewViperConfiguration(options ...Option) (*ViperConfiguration, error) {
-	v := &ViperConfiguration{
+func New(options ...interfaces.ConfigurationOption) (*Viper, error) {
+	v := &Viper{
 		Viper:  viper.New(),
 		Logger: logrus.New(),
 	}
@@ -78,7 +81,7 @@ func NewViperConfiguration(options ...Option) (*ViperConfiguration, error) {
 	return v, nil
 }
 
-func (v *ViperConfiguration) Open(paths ...string) error {
+func (v *Viper) Open(paths ...string) error {
 	v.SetConfigName(v.name)
 
 	if v.provider != "" && v.uri != "" {
@@ -112,47 +115,47 @@ func (v *ViperConfiguration) Open(paths ...string) error {
 	return nil
 }
 
-func (v *ViperConfiguration) Save(data interface{}) error {
+func (v *Viper) Save(data interface{}) error {
 	return nil
 }
 
-func (v *ViperConfiguration) Set(key string, value interface{}) error {
+func (v *Viper) Set(key string, value interface{}) error {
 	return nil
 }
 
-func (v *ViperConfiguration) Get(key string) (interface{}, error) {
+func (v *Viper) Get(key string) (interface{}, error) {
 	return nil, nil
 }
 
-func (v *ViperConfiguration) GetIntOrDefault(path string, defaultValue int) int {
+func (v *Viper) GetIntOrDefault(path string, defaultValue int) int {
 	if value := v.GetInt(path); value != 0 {
 		return value
 	}
 	return defaultValue
 }
 
-func (v *ViperConfiguration) GetBoolOrDefault(path string, defaultValue bool) bool {
+func (v *Viper) GetBoolOrDefault(path string, defaultValue bool) bool {
 	if value := v.GetBool(path); value {
 		return value
 	}
 	return defaultValue
 }
 
-func (v *ViperConfiguration) GetFloat64OrDefault(path string, defaultValue float64) float64 {
+func (v *Viper) GetFloat64OrDefault(path string, defaultValue float64) float64 {
 	if value := v.GetFloat64(path); value != 0.0 {
 		return value
 	}
 	return defaultValue
 }
 
-func (v *ViperConfiguration) GetDurationOrDefault(path string, defaultValue time.Duration) time.Duration {
+func (v *Viper) GetDurationOrDefault(path string, defaultValue time.Duration) time.Duration {
 	if value := v.GetDuration(path); value != 0.0 {
 		return value
 	}
 	return defaultValue
 }
 
-func (v *ViperConfiguration) GetStringOrDefault(path string, defaultValue string) string {
+func (v *Viper) GetStringOrDefault(path string, defaultValue string) string {
 	if value := v.GetString(path); value != "" {
 		return value
 	}

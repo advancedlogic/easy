@@ -1,4 +1,4 @@
-package broker
+package nats
 
 import (
 	"github.com/nats-io/go-nats"

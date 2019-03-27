@@ -2,12 +2,11 @@ package minio
 
 import (
 	"errors"
+	"github.com/advancedlogic/easy/interfaces"
 	"github.com/minio/minio-go"
 	"io/ioutil"
 	"strings"
 )
-
-type Option func(*Minio) error
 
 type Minio struct {
 	location  string
@@ -17,9 +16,10 @@ type Minio struct {
 	secretKey string
 }
 
-func WithLocation(location string) Option {
-	return func(m *Minio) error {
+func WithLocation(location string) interfaces.StoreOption {
+	return func(i interfaces.Store) error {
 		if location != "" {
+			m := i.(*Minio)
 			m.location = location
 			return nil
 		}
@@ -27,9 +27,10 @@ func WithLocation(location string) Option {
 	}
 }
 
-func WithBucket(bucket string) Option {
-	return func(m *Minio) error {
+func WithBucket(bucket string) interfaces.StoreOption {
+	return func(i interfaces.Store) error {
 		if bucket != "" {
+			m := i.(*Minio)
 			m.bucket = bucket
 			return nil
 		}
@@ -37,9 +38,10 @@ func WithBucket(bucket string) Option {
 	}
 }
 
-func WithEndpoint(endpoint string) Option {
-	return func(m *Minio) error {
+func WithEndpoint(endpoint string) interfaces.StoreOption {
+	return func(i interfaces.Store) error {
 		if endpoint != "" {
+			m := i.(*Minio)
 			m.endpoint = endpoint
 			return nil
 		}
@@ -47,9 +49,10 @@ func WithEndpoint(endpoint string) Option {
 	}
 }
 
-func WithAccessKey(accessKey string) Option {
-	return func(m *Minio) error {
+func WithAccessKey(accessKey string) interfaces.StoreOption {
+	return func(i interfaces.Store) error {
 		if accessKey != "" {
+			m := i.(*Minio)
 			m.accessKey = accessKey
 			return nil
 		}
@@ -57,9 +60,10 @@ func WithAccessKey(accessKey string) Option {
 	}
 }
 
-func WithSecretKey(secretKey string) Option {
-	return func(m *Minio) error {
+func WithSecretKey(secretKey string) interfaces.StoreOption {
+	return func(i interfaces.Store) error {
 		if secretKey != "" {
+			m := i.(*Minio)
 			m.secretKey = secretKey
 			return nil
 		}
@@ -67,9 +71,10 @@ func WithSecretKey(secretKey string) Option {
 	}
 }
 
-func WithCredentials(accessKey, secretKey string) Option {
-	return func(m *Minio) error {
+func WithCredentials(accessKey, secretKey string) interfaces.StoreOption {
+	return func(i interfaces.Store) error {
 		if accessKey != "" && secretKey != "" {
+			m := i.(*Minio)
 			m.accessKey = accessKey
 			m.secretKey = secretKey
 			return nil
@@ -78,7 +83,7 @@ func WithCredentials(accessKey, secretKey string) Option {
 	}
 }
 
-func NewMinio(options ...Option) (*Minio, error) {
+func NewMinio(options ...interfaces.StoreOption) (*Minio, error) {
 	m := &Minio{
 		location: "default",
 		bucket:   "default",

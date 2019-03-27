@@ -1,4 +1,4 @@
-package registry
+package consul
 
 import (
 	"github.com/stretchr/testify/assert"

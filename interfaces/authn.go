@@ -7,3 +7,5 @@ type AuthN interface {
 	Delete(string) error
 	Reset(string, string) (interface{}, error)
 }
+
+type AuthNOption func(AuthN) error

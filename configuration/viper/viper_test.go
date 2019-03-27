@@ -1,4 +1,4 @@
-package configuration
+package viper
 
 import (
 	"github.com/magiconair/properties/assert"

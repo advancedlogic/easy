@@ -1,10 +1,11 @@
-package authn
+package vault
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/advancedlogic/easy/commons"
+	"github.com/advancedlogic/easy/interfaces"
 	"github.com/shoenig/vaultapi"
 	"time"
 )
@@ -17,8 +18,6 @@ type VaultUser struct {
 	Enabled   bool     `json:"enabled"`
 }
 
-type VaultOption func(*Vault) error
-
 type Vault struct {
 	token               string
 	servers             []string
@@ -26,7 +25,7 @@ type Vault struct {
 	skipTLSVerification bool
 }
 
-func NewVault(options ...VaultOption) (*Vault, error) {
+func NewVault(options ...interfaces.AuthNOption) (*Vault, error) {
 	v := &Vault{
 		token:               "",
 		servers:             []string{"http://localhost:8200"},
@@ -43,9 +42,10 @@ func NewVault(options ...VaultOption) (*Vault, error) {
 	return v, nil
 }
 
-func WithToken(token string) VaultOption {
-	return func(vault *Vault) error {
+func WithToken(token string) interfaces.AuthNOption {
+	return func(i interfaces.AuthN) error {
 		if token != "" {
+			vault := i.(*Vault)
 			vault.token = token
 			return nil
 		}
@@ -53,9 +53,10 @@ func WithToken(token string) VaultOption {
 	}
 }
 
-func WithServers(servers ...string) VaultOption {
-	return func(vault *Vault) error {
+func WithServers(servers ...string) interfaces.AuthNOption {
+	return func(i interfaces.AuthN) error {
 		if len(servers) > 0 {
+			vault := i.(*Vault)
 			for _, server := range servers {
 				vault.servers = append(vault.servers, server)
 			}
