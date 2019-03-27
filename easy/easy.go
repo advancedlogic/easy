@@ -267,9 +267,6 @@ func WithRemoteConfiguration(provider, uri string) Option {
 			if err != nil {
 				return nil
 			}
-			if err := conf.Open(); err != nil {
-				return err
-			}
 			easy.configuration = conf
 		}
 
@@ -300,6 +297,9 @@ func New(options ...Option) (*Easy, error) {
 
 	logLevel := "info"
 	if easy.configuration != nil {
+		if err := easy.configuration.Open(); err != nil {
+			return nil, err
+		}
 		logLevel = easy.configuration.GetStringOrDefault("log.level", "info")
 		if timestamp := easy.configuration.GetStringOrDefault("log.timestamp", ""); timestamp != "" {
 			formatter.TimestampFormat = timestamp

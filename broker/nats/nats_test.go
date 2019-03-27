@@ -2,6 +2,7 @@ package nats
 
 import (
 	"github.com/nats-io/go-nats"
+	"github.com/stretchr/testify/assert"
 	"gopkg.in/go-playground/assert.v1"
 	"sync"
 	"testing"
