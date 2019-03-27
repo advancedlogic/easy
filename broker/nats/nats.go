@@ -37,7 +37,7 @@ func WithLogger(logger *logrus.Logger) interfaces.BrokerOption {
 	}
 }
 
-func NewNats(options ...interfaces.BrokerOption) (*Nats, error) {
+func New(options ...interfaces.BrokerOption) (*Nats, error) {
 	n := &Nats{
 		endpoint:      "localhost:4222",
 		handlers:      make(map[string]func(*nats.Msg)),

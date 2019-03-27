@@ -102,7 +102,7 @@ type Rest struct {
 	*logrus.Logger
 }
 
-func NewRest(options ...interfaces.TransportOption) (*Rest, error) {
+func New(options ...interfaces.TransportOption) (*Rest, error) {
 	rest := &Rest{
 		port:           8080,
 		getHandlers:    make(map[string][]gin.HandlerFunc),

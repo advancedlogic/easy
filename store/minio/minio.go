@@ -83,7 +83,7 @@ func WithCredentials(accessKey, secretKey string) interfaces.StoreOption {
 	}
 }
 
-func NewMinio(options ...interfaces.StoreOption) (*Minio, error) {
+func New(options ...interfaces.StoreOption) (*Minio, error) {
 	m := &Minio{
 		location: "default",
 		bucket:   "default",

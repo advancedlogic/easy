@@ -2,13 +2,13 @@ package easy
 
 import (
 	"errors"
-	"github.com/advancedlogic/easy/authn"
-	"github.com/advancedlogic/easy/broker"
+	"github.com/advancedlogic/easy/authn/fs"
+	"github.com/advancedlogic/easy/broker/nats"
 	"github.com/advancedlogic/easy/commons"
-	"github.com/advancedlogic/easy/configuration"
+	"github.com/advancedlogic/easy/configuration/viper"
 	"github.com/advancedlogic/easy/interfaces"
-	"github.com/advancedlogic/easy/registry"
-	"github.com/advancedlogic/easy/transport"
+	"github.com/advancedlogic/easy/registry/consul"
+	"github.com/advancedlogic/easy/transport/rest"
 	"github.com/ankit-arora/go-utils/go-shutdown-hook"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -70,7 +70,7 @@ func WithRegistry(registry interfaces.Registry) Option {
 
 func WithDefaultRegistry() Option {
 	return func(easy *Easy) error {
-		r, err := registry.NewConsul(registry.WithLogger(easy.Logger))
+		r, err := consul.New(consul.WithLogger(easy.Logger))
 		if err != nil {
 			return err
 		}
@@ -81,7 +81,7 @@ func WithDefaultRegistry() Option {
 
 func WithDefaultTransport() Option {
 	return func(easy *Easy) error {
-		t, err := transport.NewRest(transport.WithLogger(easy.Logger))
+		t, err := rest.New(rest.WithLogger(easy.Logger))
 		if err != nil {
 			return err
 		}
@@ -92,7 +92,7 @@ func WithDefaultTransport() Option {
 
 func WithDefaultBroker() Option {
 	return func(easy *Easy) error {
-		b, err := broker.NewNats(broker.WithLogger(easy.Logger))
+		b, err := nats.New(nats.WithLogger(easy.Logger))
 		if err != nil {
 			return err
 		}
@@ -103,8 +103,8 @@ func WithDefaultBroker() Option {
 
 func WithDefaultConfiguration() Option {
 	return func(easy *Easy) error {
-		c, err := configuration.NewViperConfiguration(
-			configuration.WithName(easy.name))
+		c, err := viper.New(
+			viper.WithName(easy.name))
 		if err != nil {
 			return err
 		}
@@ -121,8 +121,8 @@ func WithDefaultConfiguration() Option {
 func WithDefaultAuthN(folder string) Option {
 	return func(easy *Easy) error {
 		if folder != "" {
-			c, err := authn.NewFS(
-				authn.WithFolder(folder))
+			c, err := fs.New(
+				fs.WithFolder(folder))
 			if err != nil {
 				return err
 			}
@@ -241,9 +241,9 @@ func WithConfiguration(configuration interfaces.Configuration) Option {
 func WithLocalConfiguration() Option {
 	return func(easy *Easy) error {
 		if easy.name != "" {
-			conf, err := configuration.NewViperConfiguration(
-				configuration.WithName(easy.name),
-				configuration.WithLogger(easy.Logger))
+			conf, err := viper.New(
+				viper.WithName(easy.name),
+				viper.WithLogger(easy.Logger))
 			if err != nil {
 				return err
 			}
@@ -259,11 +259,11 @@ func WithLocalConfiguration() Option {
 func WithRemoteConfiguration(provider, uri string) Option {
 	return func(easy *Easy) error {
 		if provider != "" && uri != "" {
-			conf, err := configuration.NewViperConfiguration(
-				configuration.WithName(easy.name),
-				configuration.WithProvider(provider),
-				configuration.WithURI(uri),
-				configuration.WithLogger(easy.Logger))
+			conf, err := viper.New(
+				viper.WithName(easy.name),
+				viper.WithProvider(provider),
+				viper.WithURI(uri),
+				viper.WithLogger(easy.Logger))
 			if err != nil {
 				return nil
 			}
@@ -391,7 +391,7 @@ func (easy *Easy) Run() {
 		easy.Info("authn setup")
 
 		register := func(c *gin.Context) {
-			var user authn.FSUser
+			var user fs.User
 			err := c.BindJSON(&user)
 			if err != nil {
 				c.String(http.StatusBadGateway, err.Error())
@@ -406,7 +406,7 @@ func (easy *Easy) Run() {
 		}
 
 		login := func(c *gin.Context) {
-			var user authn.FSUser
+			var user fs.User
 			err := c.BindJSON(&user)
 			if err != nil {
 				c.String(http.StatusBadGateway, err.Error())

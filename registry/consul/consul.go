@@ -143,7 +143,7 @@ type Consul struct {
 	*logrus.Logger
 }
 
-func NewConsul(options ...interfaces.RegistryOption) (*Consul, error) {
+func New(options ...interfaces.RegistryOption) (*Consul, error) {
 	//Default values first
 	c := &Consul{
 		id:             "default",

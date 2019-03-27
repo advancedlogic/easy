@@ -25,7 +25,7 @@ type Vault struct {
 	skipTLSVerification bool
 }
 
-func NewVault(options ...interfaces.AuthNOption) (*Vault, error) {
+func New(options ...interfaces.AuthNOption) (*Vault, error) {
 	v := &Vault{
 		token:               "",
 		servers:             []string{"http://localhost:8200"},

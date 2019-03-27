@@ -50,7 +50,7 @@ func WithFolder(folder string) interfaces.AuthNOption {
 	}
 }
 
-func NewFS(options ...interfaces.AuthNOption) (*FS, error) {
+func New(options ...interfaces.AuthNOption) (*FS, error) {
 	fs := &FS{
 		folder: "fs",
 	}
