@@ -112,7 +112,11 @@ func WithX509Certificate(pem, key string) interfaces.ClientOption {
 }
 
 func New(options ...interfaces.ClientOption) (*Resty, error) {
-	r := &Resty{}
+	r := &Resty{
+		QueryParams: make(map[string]string),
+		Headers:     make(map[string]string),
+		Cookies:     make(map[string]string),
+	}
 	for _, option := range options {
 		if err := option(r); err != nil {
 			return nil, err

@@ -28,7 +28,7 @@ require (
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
 	github.com/zsais/go-gin-prometheus v0.0.0-20181030200533-58963fb32f54
 	golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c
-	golang.org/x/net v0.0.0-20190327091125-710a502c58a2
+	golang.org/x/net v0.0.0-20190327214358-63eda1eb0650
 	golang.org/x/sys v0.0.0-20190322080309-f49334f85ddc // indirect
 	golang.org/x/text v0.3.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
