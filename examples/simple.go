@@ -9,8 +9,7 @@ import (
 )
 
 func main() {
-	microservice, err := Default()
-
+	microservice, err := Default(WithName("default"))
 	if err != nil {
 		panic(err)
 	}
