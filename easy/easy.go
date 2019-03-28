@@ -321,9 +321,8 @@ func New(options ...Option) (*Easy, error) {
 	return easy, nil
 }
 
-func Default(name string, processor interfaces.Processor) (*Easy, error) {
+func Default(name string) (*Easy, error) {
 	return New(WithName(name),
-		WithProcessor(processor),
 		WithDefaultConfiguration(),
 		WithDefaultRegistry(),
 		WithDefaultBroker(),
