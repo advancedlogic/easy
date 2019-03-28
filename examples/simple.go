@@ -9,12 +9,7 @@ import (
 )
 
 func main() {
-	microservice, err := NewEasy(
-		WithDefaultConfiguration(),
-		WithDefaultRegistry(),
-		WithDefaultBroker(),
-		WithDefaultAuthN("fs"),
-		WithDefaultTransport())
+	microservice, err := Default()
 
 	if err != nil {
 		panic(err)

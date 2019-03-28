@@ -321,6 +321,15 @@ func New(options ...Option) (*Easy, error) {
 	return easy, nil
 }
 
+func Default(name string, processor interfaces.Processor) (*Easy, error) {
+	return New(WithName(name),
+		WithProcessor(processor),
+		WithDefaultConfiguration(),
+		WithDefaultRegistry(),
+		WithDefaultBroker(),
+		WithDefaultTransport())
+}
+
 //ID() return the µs' ID
 //Part of Service interface implementation
 func (easy *Easy) ID() string {
