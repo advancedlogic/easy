@@ -321,12 +321,22 @@ func New(options ...Option) (*Easy, error) {
 	return easy, nil
 }
 
-func Default(name string) (*Easy, error) {
-	return New(WithName(name),
+func Default(options ...Option) (*Easy, error) {
+	microservice, err := New(
 		WithDefaultConfiguration(),
 		WithDefaultRegistry(),
 		WithDefaultBroker(),
 		WithDefaultTransport())
+	if err != nil {
+		return nil, err
+	}
+
+	for _, option := range options {
+		if err := option(microservice); err != nil {
+			return nil, err
+		}
+	}
+	return microservice, nil
 }
 
 //ID() return the µs' ID
