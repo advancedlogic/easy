@@ -7,12 +7,24 @@ import (
 )
 
 type Ledis struct {
+	collection    string
 	endpoints     []string
 	username      string
 	password      string
 	db            int
 	clusterClient *redis.ClusterClient
 	client        *redis.Client
+}
+
+func WithCollection(collection string) interfaces.CacheOption {
+	return func(c interfaces.Cache) error {
+		if collection != "" {
+			ledis := c.(*Ledis)
+			ledis.collection = collection
+			return nil
+		}
+		return errors.New("collection cannot be empty")
+	}
 }
 
 func WithPassowrd(password string) interfaces.CacheOption {
@@ -91,7 +103,7 @@ func (l *Ledis) Close() error {
 	return nil
 }
 
-func (l *Ledis) Set(key string, value interface{}) error {
+func (l *Ledis) Put(key string, value interface{}) error {
 	var status *redis.StatusCmd
 	if l.client != nil {
 		status = l.client.Set(key, value, -1)
@@ -104,7 +116,33 @@ func (l *Ledis) Set(key string, value interface{}) error {
 	return nil
 }
 
-func (l *Ledis) Get(key string) (interface{}, error) {
+func (l *Ledis) Set(value string) error {
+	var status *redis.IntCmd
+	if l.client != nil {
+		status = l.client.SAdd(l.collection, value)
+	} else {
+		status = l.clusterClient.SAdd(l.collection, value)
+	}
+	if status.Err() != nil {
+		return status.Err()
+	}
+	return nil
+}
+
+func (l *Ledis) IsMember(value string) (bool, error) {
+	var status *redis.BoolCmd
+	if l.client != nil {
+		status = l.client.SIsMember(l.collection, value)
+	} else {
+		status = l.clusterClient.SIsMember(l.collection, value)
+	}
+	if status.Err() != nil {
+		return false, status.Err()
+	}
+	return status.Val(), nil
+}
+
+func (l *Ledis) Take(key string) (interface{}, error) {
 	var status *redis.StringCmd
 	if l.client != nil {
 		status = l.client.Get(key)
