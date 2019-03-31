@@ -13,6 +13,7 @@ require (
 	github.com/gin-gonic/gin v1.3.0
 	github.com/go-ini/ini v1.42.0 // indirect
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
+	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/google/btree v1.0.0 // indirect
@@ -25,6 +26,7 @@ require (
 	github.com/hashicorp/mdns v1.0.1 // indirect
 	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
+	github.com/magiconair/properties v1.8.0
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/mattn/go-isatty v0.0.7 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
@@ -45,6 +47,7 @@ require (
 	github.com/prometheus/common v0.2.0 // indirect
 	github.com/prometheus/procfs v0.0.0-20190328153300-af7bedc223fb // indirect
 	github.com/shoenig/vaultapi v1.0.0
+	github.com/siddontang/ledisdb v0.0.0-20190202134119-8ceb77e66a92 // indirect
 	github.com/sirupsen/logrus v1.4.0
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

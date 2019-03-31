@@ -33,6 +33,7 @@ type Easy struct {
 	processor     interfaces.Processor
 	configuration interfaces.Configuration
 	authn         interfaces.AuthN
+	cache         interfaces.Cache
 	*logrus.Logger
 }
 
@@ -202,6 +203,19 @@ func WithProcessor(processor interfaces.Processor) Option {
 			return nil
 		}
 		return errors.New("processor cannot be nil")
+	}
+}
+
+func WithCache(cache interfaces.Cache) Option {
+	return func(easy *Easy) error {
+		if cache != nil {
+			err := cache.Init()
+			if err != nil {
+				return err
+			}
+			easy.cache = cache
+		}
+		return errors.New("cache cannot be nil")
 	}
 }
 
@@ -383,6 +397,10 @@ func (easy *Easy) Processor() interfaces.Processor {
 
 func (easy *Easy) AuthN() interfaces.AuthN {
 	return easy.authn
+}
+
+func (easy *Easy) Cache() interfaces.Cache {
+	return easy.cache
 }
 
 func (easy *Easy) Run() {
