@@ -214,6 +214,7 @@ func WithCache(cache interfaces.Cache) Option {
 				return err
 			}
 			easy.cache = cache
+			return nil
 		}
 		return errors.New("cache cannot be nil")
 	}
