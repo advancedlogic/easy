@@ -1,4 +1,4 @@
-package registry
+package consul
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -6,42 +6,42 @@ import (
 )
 
 func TestNewConsul(t *testing.T) {
-	c, _ := NewConsul()
+	c, _ := New()
 	assert.NotEqual(t, c, nil)
 }
 
 func TestWithID(t *testing.T) {
-	c, _ := NewConsul(WithID("123"))
+	c, _ := New(WithID("123"))
 	assert.Equal(t, c.id, "123")
 }
 
 func TestWithName(t *testing.T) {
-	c, _ := NewConsul(WithName("test"))
+	c, _ := New(WithName("test"))
 	assert.Equal(t, c.name, "test")
 }
 
 func TestWithPort(t *testing.T) {
-	c, _ := NewConsul(WithPort(9090))
+	c, _ := New(WithPort(9090))
 	assert.Equal(t, c.port, 9090)
 }
 
 func TestWithInterval(t *testing.T) {
-	c, _ := NewConsul(WithInterval("1s"))
+	c, _ := New(WithInterval("1s"))
 	assert.Equal(t, c.interval, "1s")
 }
 
 func TestWithTimeout(t *testing.T) {
-	c, _ := NewConsul(WithTimeout("1s"))
+	c, _ := New(WithTimeout("1s"))
 	assert.Equal(t, c.timeout, "1s")
 }
 
 func TestWithHealthEndpoint(t *testing.T) {
-	c, _ := NewConsul(WithHealthEndpoint("health"))
+	c, _ := New(WithHealthEndpoint("health"))
 	assert.Equal(t, c.healthEndpoint, "health")
 }
 
 func TestConsul_Register(t *testing.T) {
-	c, _ := NewConsul()
+	c, _ := New()
 	err := c.Register()
 	assert.Equal(t, err, nil)
 }

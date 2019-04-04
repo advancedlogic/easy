@@ -20,3 +20,5 @@ type Configuration interface {
 	GetFloat64OrDefault(string, float64) float64
 	GetDurationOrDefault(string, time.Duration) time.Duration
 }
+
+type ConfigurationOption func(Configuration) error

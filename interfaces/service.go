@@ -22,6 +22,7 @@ type Service interface {
 	Processor() Processor
 	Configuration() Configuration
 	AuthN() AuthN
+	Cache() Cache
 
 	//Transport Handler (rest) Helpers
 	Handler(string, string, interface{}) error

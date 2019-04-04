@@ -1,13 +1,12 @@
-package broker
+package nats
 
 import (
 	"errors"
 	"fmt"
+	"github.com/advancedlogic/easy/interfaces"
 	"github.com/nats-io/go-nats"
 	"github.com/sirupsen/logrus"
 )
-
-type Option func(*Nats) error
 
 type Nats struct {
 	endpoint            string
@@ -20,23 +19,25 @@ type Nats struct {
 	subscriptions map[string]*nats.Subscription
 }
 
-func WithEndpoint(endpoint string) Option {
-	return func(i *Nats) error {
+func WithEndpoint(endpoint string) interfaces.BrokerOption {
+	return func(i interfaces.Broker) error {
 		if endpoint != "" {
-			i.endpoint = endpoint
+			n := i.(*Nats)
+			n.endpoint = endpoint
 			return nil
 		}
 		return errors.New("endpoint cannot be empty")
 	}
 }
 
-func WithLogger(logger *logrus.Logger) Option {
-	return func(i *Nats) error {
-		return i.WithLogger(logger)
+func WithLogger(logger *logrus.Logger) interfaces.BrokerOption {
+	return func(i interfaces.Broker) error {
+		n := i.(*Nats)
+		return n.WithLogger(logger)
 	}
 }
 
-func NewNats(options ...Option) (*Nats, error) {
+func New(options ...interfaces.BrokerOption) (*Nats, error) {
 	n := &Nats{
 		endpoint:      "localhost:4222",
 		handlers:      make(map[string]func(*nats.Msg)),

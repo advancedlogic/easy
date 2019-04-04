@@ -1,9 +1,10 @@
-package authn
+package fs
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/advancedlogic/easy/commons"
+	"github.com/advancedlogic/easy/interfaces"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"time"
@@ -13,9 +14,7 @@ type FS struct {
 	folder string
 }
 
-type FSOption func(*FS) error
-
-type FSUser struct {
+type User struct {
 	Username  string   `json:"username"`
 	Password  string   `json:"password"`
 	Timestamp int64    `json:"timestamp"`
@@ -23,13 +22,13 @@ type FSUser struct {
 	Enabled   bool     `json:"enabled"`
 }
 
-func NewFSUser(username, password string) (*FSUser, error) {
+func NewUser(username, password string) (*User, error) {
 	if username != "" && password != "" {
 		epassword, err := commons.HashAndSalt(password)
 		if err != nil {
 			return nil, err
 		}
-		return &FSUser{
+		return &User{
 			Username:  username,
 			Password:  epassword,
 			Timestamp: time.Now().UnixNano(),
@@ -40,9 +39,10 @@ func NewFSUser(username, password string) (*FSUser, error) {
 	return nil, errors.New("username and password cannot be empty")
 }
 
-func WithFolder(folder string) FSOption {
-	return func(fs *FS) error {
+func WithFolder(folder string) interfaces.AuthNOption {
+	return func(a interfaces.AuthN) error {
 		if folder != "" {
+			fs := a.(*FS)
 			fs.folder = folder
 			return nil
 		}
@@ -50,7 +50,7 @@ func WithFolder(folder string) FSOption {
 	}
 }
 
-func NewFS(options ...FSOption) (*FS, error) {
+func New(options ...interfaces.AuthNOption) (*FS, error) {
 	fs := &FS{
 		folder: "fs",
 	}
@@ -64,7 +64,7 @@ func NewFS(options ...FSOption) (*FS, error) {
 
 func (f *FS) Register(username, password string) (interface{}, error) {
 	if username != "" && password != "" {
-		user, err := NewFSUser(username, password)
+		user, err := NewUser(username, password)
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +88,7 @@ func (f *FS) Login(username, password string) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		var user FSUser
+		var user User
 		err = json.Unmarshal(jsonUser, &user)
 		if err != nil {
 			return nil, err

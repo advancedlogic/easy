@@ -1,26 +1,27 @@
-package broker
+package nats
 
 import (
 	"github.com/nats-io/go-nats"
+	"github.com/stretchr/testify/assert"
 	"gopkg.in/go-playground/assert.v1"
 	"sync"
 	"testing"
 )
 
 func TestNewNats(t *testing.T) {
-	n, _ := NewNats()
+	n, _ := New()
 	assert.NotEqual(t, n, nil)
 }
 
 func TestNats_Connect(t *testing.T) {
-	n, _ := NewNats()
+	n, _ := New()
 	err := n.Connect()
 	defer n.Close()
 	assert.Equal(t, err, nil)
 }
 
 func TestNats_Close(t *testing.T) {
-	n, _ := NewNats()
+	n, _ := New()
 	err := n.Connect()
 	assert.Equal(t, err, nil)
 	err = n.Close()
@@ -29,7 +30,7 @@ func TestNats_Close(t *testing.T) {
 
 func TestNats_PublishSubscribe(t *testing.T) {
 	wg := sync.WaitGroup{}
-	n, _ := NewNats()
+	n, _ := New()
 	err := n.Connect()
 	assert.Equal(t, err, nil)
 	defer n.Close()

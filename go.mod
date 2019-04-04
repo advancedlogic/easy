@@ -7,6 +7,7 @@ require (
 	github.com/gin-contrib/sse v0.0.0-20190301062529-5545eab6dad3 // indirect
 	github.com/gin-gonic/gin v1.3.0
 	github.com/go-ini/ini v1.42.0 // indirect
+	github.com/go-redis/redis v6.15.2+incompatible // indirect
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
 	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/google/uuid v1.1.1
@@ -18,7 +19,7 @@ require (
 	github.com/mattn/go-isatty v0.0.7 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/minio/minio-go v6.0.14+incompatible
-	github.com/mmcdole/gofeed v1.0.0-beta2
+	github.com/mmcdole/gofeed v1.0.0-beta2 // indirect
 	github.com/mmcdole/goxpp v0.0.0-20181012175147-0068e33feabf // indirect
 	github.com/nats-io/go-nats v1.7.2
 	github.com/nats-io/nkeys v0.0.2 // indirect
@@ -41,4 +42,5 @@ require (
 	golang.org/x/text v0.3.0
 	gopkg.in/go-playground/assert.v1 v1.2.1
 	gopkg.in/go-playground/validator.v8 v8.18.2 // indirect
+	gopkg.in/resty.v1 v1.12.0 // indirect
 )

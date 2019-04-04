@@ -101,16 +101,9 @@ func (r *RSS) reload(source RSSSource) error {
 }
 
 func main() {
-	if microservice, err := NewEasy(
-		WithName("rss"),
-		WithDefaultRegistry(),
-		WithDefaultBroker(),
-		WithDefaultTransport()); err == nil {
+	if microservice, err := Default("rss"); err == nil {
+
 		rss := NewRSS()
-		err := rss.Init(microservice)
-		if err != nil {
-			panic(err)
-		}
 
 		process := func(source RSSSource) error {
 			feeds, err := rss.Process(source)

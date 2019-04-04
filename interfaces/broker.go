@@ -9,3 +9,5 @@ type Broker interface {
 	Unsubscribe(string) error
 	Close() error
 }
+
+type BrokerOption func(Broker) error

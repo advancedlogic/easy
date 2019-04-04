@@ -2,13 +2,13 @@ package easy
 
 import (
 	"errors"
-	"github.com/advancedlogic/easy/authn"
-	"github.com/advancedlogic/easy/broker"
+	"github.com/advancedlogic/easy/authn/fs"
+	"github.com/advancedlogic/easy/broker/nats"
 	"github.com/advancedlogic/easy/commons"
-	"github.com/advancedlogic/easy/configuration"
+	"github.com/advancedlogic/easy/configuration/viper"
 	"github.com/advancedlogic/easy/interfaces"
-	"github.com/advancedlogic/easy/registry"
-	"github.com/advancedlogic/easy/transport"
+	"github.com/advancedlogic/easy/registry/consul"
+	"github.com/advancedlogic/easy/transport/rest"
 	"github.com/ankit-arora/go-utils/go-shutdown-hook"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -33,6 +33,7 @@ type Easy struct {
 	processor     interfaces.Processor
 	configuration interfaces.Configuration
 	authn         interfaces.AuthN
+	cache         interfaces.Cache
 	*logrus.Logger
 }
 
@@ -70,7 +71,7 @@ func WithRegistry(registry interfaces.Registry) Option {
 
 func WithDefaultRegistry() Option {
 	return func(easy *Easy) error {
-		r, err := registry.NewConsul(registry.WithLogger(easy.Logger))
+		r, err := consul.New(consul.WithLogger(easy.Logger))
 		if err != nil {
 			return err
 		}
@@ -81,7 +82,7 @@ func WithDefaultRegistry() Option {
 
 func WithDefaultTransport() Option {
 	return func(easy *Easy) error {
-		t, err := transport.NewRest(transport.WithLogger(easy.Logger))
+		t, err := rest.New(rest.WithLogger(easy.Logger))
 		if err != nil {
 			return err
 		}
@@ -92,7 +93,7 @@ func WithDefaultTransport() Option {
 
 func WithDefaultBroker() Option {
 	return func(easy *Easy) error {
-		b, err := broker.NewNats(broker.WithLogger(easy.Logger))
+		b, err := nats.New(nats.WithLogger(easy.Logger))
 		if err != nil {
 			return err
 		}
@@ -103,8 +104,8 @@ func WithDefaultBroker() Option {
 
 func WithDefaultConfiguration() Option {
 	return func(easy *Easy) error {
-		c, err := configuration.NewViperConfiguration(
-			configuration.WithName(easy.name))
+		c, err := viper.New(
+			viper.WithName(easy.name))
 		if err != nil {
 			return err
 		}
@@ -121,8 +122,8 @@ func WithDefaultConfiguration() Option {
 func WithDefaultAuthN(folder string) Option {
 	return func(easy *Easy) error {
 		if folder != "" {
-			c, err := authn.NewFS(
-				authn.WithFolder(folder))
+			c, err := fs.New(
+				fs.WithFolder(folder))
 			if err != nil {
 				return err
 			}
@@ -205,6 +206,20 @@ func WithProcessor(processor interfaces.Processor) Option {
 	}
 }
 
+func WithCache(cache interfaces.Cache) Option {
+	return func(easy *Easy) error {
+		if cache != nil {
+			err := cache.Init()
+			if err != nil {
+				return err
+			}
+			easy.cache = cache
+			return nil
+		}
+		return errors.New("cache cannot be nil")
+	}
+}
+
 func WithPlugin(lib, name string) Option {
 	return func(easy *Easy) error {
 		if lib != "" && name != "" {
@@ -241,9 +256,9 @@ func WithConfiguration(configuration interfaces.Configuration) Option {
 func WithLocalConfiguration() Option {
 	return func(easy *Easy) error {
 		if easy.name != "" {
-			conf, err := configuration.NewViperConfiguration(
-				configuration.WithName(easy.name),
-				configuration.WithLogger(easy.Logger))
+			conf, err := viper.New(
+				viper.WithName(easy.name),
+				viper.WithLogger(easy.Logger))
 			if err != nil {
 				return err
 			}
@@ -259,16 +274,13 @@ func WithLocalConfiguration() Option {
 func WithRemoteConfiguration(provider, uri string) Option {
 	return func(easy *Easy) error {
 		if provider != "" && uri != "" {
-			conf, err := configuration.NewViperConfiguration(
-				configuration.WithName(easy.name),
-				configuration.WithProvider(provider),
-				configuration.WithURI(uri),
-				configuration.WithLogger(easy.Logger))
+			conf, err := viper.New(
+				viper.WithName(easy.name),
+				viper.WithProvider(provider),
+				viper.WithURI(uri),
+				viper.WithLogger(easy.Logger))
 			if err != nil {
 				return nil
-			}
-			if err := conf.Open(); err != nil {
-				return err
 			}
 			easy.configuration = conf
 		}
@@ -280,7 +292,7 @@ func WithRemoteConfiguration(provider, uri string) Option {
 //NewEasy create a new µs according to the passed options
 //WithID: default random
 //WithName: default "default"
-func NewEasy(options ...Option) (*Easy, error) {
+func New(options ...Option) (*Easy, error) {
 	easy := &Easy{
 		id:     uuid.New().String(),
 		Logger: logrus.New(),
@@ -300,6 +312,9 @@ func NewEasy(options ...Option) (*Easy, error) {
 
 	logLevel := "info"
 	if easy.configuration != nil {
+		if err := easy.configuration.Open(); err != nil {
+			return nil, err
+		}
 		logLevel = easy.configuration.GetStringOrDefault("log.level", "info")
 		if timestamp := easy.configuration.GetStringOrDefault("log.timestamp", ""); timestamp != "" {
 			formatter.TimestampFormat = timestamp
@@ -319,6 +334,24 @@ func NewEasy(options ...Option) (*Easy, error) {
 	}
 
 	return easy, nil
+}
+
+func Default(options ...Option) (*Easy, error) {
+	microservice, err := New(
+		WithDefaultConfiguration(),
+		WithDefaultRegistry(),
+		WithDefaultBroker(),
+		WithDefaultTransport())
+	if err != nil {
+		return nil, err
+	}
+
+	for _, option := range options {
+		if err := option(microservice); err != nil {
+			return nil, err
+		}
+	}
+	return microservice, nil
 }
 
 //ID() return the µs' ID
@@ -367,6 +400,10 @@ func (easy *Easy) AuthN() interfaces.AuthN {
 	return easy.authn
 }
 
+func (easy *Easy) Cache() interfaces.Cache {
+	return easy.cache
+}
+
 func (easy *Easy) Run() {
 	go_shutdown_hook.ADD(func() {
 		easy.Stop()
@@ -391,7 +428,7 @@ func (easy *Easy) Run() {
 		easy.Info("authn setup")
 
 		register := func(c *gin.Context) {
-			var user authn.FSUser
+			var user fs.User
 			err := c.BindJSON(&user)
 			if err != nil {
 				c.String(http.StatusBadGateway, err.Error())
@@ -406,7 +443,7 @@ func (easy *Easy) Run() {
 		}
 
 		login := func(c *gin.Context) {
-			var user authn.FSUser
+			var user fs.User
 			err := c.BindJSON(&user)
 			if err != nil {
 				c.String(http.StatusBadGateway, err.Error())

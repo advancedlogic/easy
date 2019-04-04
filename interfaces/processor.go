@@ -5,3 +5,5 @@ type Processor interface {
 	Close() error
 	Process(interface{}) (interface{}, error)
 }
+
+type ProcessorOption func(Processor) error

@@ -1,7 +1,17 @@
 package interfaces
 
 type Cache interface {
-	Set(string, interface{}) error
-	Get(string) (interface{}, error)
+	Init() error
+	Close() error
+
+	Put(string, interface{}) error
+	Take(string) (interface{}, error)
+	Exists(...string) (bool, error)
 	Keys() (interface{}, error)
+	Delete(...string) error
+
+	Set(string) error
+	IsMember(string) (bool, error)
 }
+
+type CacheOption func(Cache) error

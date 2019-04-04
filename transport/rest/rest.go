@@ -1,10 +1,11 @@
-package transport
+package rest
 
 import (
 	"context"
 	"errors"
 	"fmt"
 	"github.com/advancedlogic/easy/commons"
+	"github.com/advancedlogic/easy/interfaces"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/toorop/gin-logrus"
@@ -15,11 +16,10 @@ import (
 	"time"
 )
 
-type Option func(*Rest) error
-
-func WithPort(port int) Option {
-	return func(rest *Rest) error {
+func WithPort(port int) interfaces.TransportOption {
+	return func(t interfaces.Transport) error {
 		if port > 0 {
+			rest := t.(*Rest)
 			rest.port = port
 			return nil
 		}
@@ -27,53 +27,61 @@ func WithPort(port int) Option {
 	}
 }
 
-func WithHandler(mode, route string, handler interface{}) Option {
-	return func(rest *Rest) error {
+func WithHandler(mode, route string, handler interface{}) interfaces.TransportOption {
+	return func(t interfaces.Transport) error {
+		rest := t.(*Rest)
 		return rest.Handler(mode, route, handler)
 	}
 }
 
-func GET(route string, handler interface{}) Option {
-	return func(rest *Rest) error {
+func GET(route string, handler interface{}) interfaces.TransportOption {
+	return func(t interfaces.Transport) error {
+		rest := t.(*Rest)
 		option := WithHandler(commons.ModeGet, route, handler)
 		return option(rest)
 	}
 }
 
-func POST(route string, handler interface{}) Option {
-	return func(rest *Rest) error {
+func POST(route string, handler interface{}) interfaces.TransportOption {
+	return func(t interfaces.Transport) error {
+		rest := t.(*Rest)
 		option := WithHandler(commons.ModePost, route, handler)
 		return option(rest)
 	}
 }
 
-func PUT(route string, handler interface{}) Option {
-	return func(rest *Rest) error {
+func PUT(route string, handler interface{}) interfaces.TransportOption {
+	return func(t interfaces.Transport) error {
+		rest := t.(*Rest)
 		option := WithHandler(commons.ModePut, route, handler)
 		return option(rest)
 	}
 }
 
-func DELETE(route string, handler interface{}) Option {
-	return func(rest *Rest) error {
+func DELETE(route string, handler interface{}) interfaces.TransportOption {
+	return func(t interfaces.Transport) error {
+		rest := t.(*Rest)
 		option := WithHandler(commons.ModeDelete, route, handler)
 		return option(rest)
 	}
 }
 
-func WithMiddleware(middleware interface{}) Option {
-	return func(rest *Rest) error {
+func WithMiddleware(middleware interface{}) interfaces.TransportOption {
+	return func(t interfaces.Transport) error {
+		rest := t.(*Rest)
 		return rest.Middleware(middleware)
 	}
 }
-func WithStaticFilesFolder(route, folder string) Option {
-	return func(rest *Rest) error {
+func WithStaticFilesFolder(route, folder string) interfaces.TransportOption {
+	return func(t interfaces.Transport) error {
+		rest := t.(*Rest)
 		return rest.StaticFilesFolder(route, folder)
 	}
 }
 
-func WithLogger(logger *logrus.Logger) Option {
-	return func(rest *Rest) error {
+func WithLogger(logger *logrus.Logger) interfaces.TransportOption {
+	return func(t interfaces.Transport) error {
+		rest := t.(*Rest)
 		return rest.WithLogger(logger)
 	}
 }
@@ -96,7 +104,7 @@ type Rest struct {
 	*logrus.Logger
 }
 
-func NewRest(options ...Option) (*Rest, error) {
+func New(options ...interfaces.TransportOption) (*Rest, error) {
 	rest := &Rest{
 		port:           8080,
 		getHandlers:    make(map[string][]gin.HandlerFunc),
