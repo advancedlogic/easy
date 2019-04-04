@@ -9,7 +9,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/toorop/gin-logrus"
 	"github.com/zsais/go-gin-prometheus"
+	"net"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -191,6 +193,10 @@ func (r *Rest) Run() error {
 		}
 	}
 
+	if err := r.findAlternativePort(); err != nil {
+		r.Fatal(err)
+	}
+
 	s := &http.Server{
 		Addr:           fmt.Sprintf(":%d", r.port),
 		Handler:        router,
@@ -199,17 +205,32 @@ func (r *Rest) Run() error {
 		MaxHeaderBytes: 1 << 20,
 	}
 	r.server = s
+	httpHeader := "http"
 	go func() {
 		if r.cert != "" && r.key != "" {
 			if err := s.ListenAndServeTLS(r.cert, r.key); err != nil {
 				r.Fatal(err)
 			}
-
+			httpHeader += "s"
 		} else if err := s.ListenAndServe(); err != nil {
 			r.Fatal(err)
 		}
+		r.Info(fmt.Sprintf("%s server listening on port %d", httpHeader, r.port))
 	}()
 	return nil
+}
+
+func (r *Rest) findAlternativePort() error {
+	currentPort := r.port
+	for port := currentPort; port < 32000; port++ {
+		if _, err := net.DialTimeout("tcp", "localhost:"+strconv.Itoa(port), 3*time.Second); err == nil {
+			r.port = port
+			return nil
+		}
+		r.Warn(fmt.Sprintf("port %d is busy", port))
+	}
+
+	return errors.New("no alternatives port found")
 }
 
 func (r *Rest) Stop() error {

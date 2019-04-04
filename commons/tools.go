@@ -76,6 +76,14 @@ func Try(body func(), handler func(interface{})) {
 	body()
 }
 
+func If(condition bool, t func(), f func()) {
+	if condition {
+		t()
+	} else {
+		f()
+	}
+}
+
 // EB64 return an encoded base64 string
 func EB64(s string) string {
 	return base64.URLEncoding.EncodeToString([]byte(s))
