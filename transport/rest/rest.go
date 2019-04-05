@@ -231,7 +231,7 @@ func (r *Rest) Run() error {
 func (r *Rest) findAlternativePort() error {
 	currentPort := r.port
 	for port := currentPort; port < 32000; port++ {
-		if _, err := net.DialTimeout("tcp", "localhost:"+strconv.Itoa(port), 3*time.Second); err == nil {
+		if _, err := net.DialTimeout("tcp", "localhost:"+strconv.Itoa(port), 10*time.Second); err == nil {
 			r.port = port
 			return nil
 		}
