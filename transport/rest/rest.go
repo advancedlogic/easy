@@ -12,7 +12,7 @@ import (
 	"github.com/zsais/go-gin-prometheus"
 	"net"
 	"net/http"
-	"strconv"
+	"strings"
 	"time"
 )
 
@@ -223,21 +223,40 @@ func (r *Rest) Run() error {
 		} else if err := s.ListenAndServe(); err != nil {
 			r.Fatal(err)
 		}
-		r.Info(fmt.Sprintf("%s server listening on port %d", httpHeader, r.port))
+
 	}()
+	r.Info(fmt.Sprintf("Http(s) server listening on port %d", r.port))
+	return nil
+}
+
+func (r *Rest) scanPort(ip string, port int, timeout time.Duration) error {
+	target := fmt.Sprintf("%s:%d", ip, port)
+	conn, err := net.DialTimeout("tcp", target, timeout)
+
+	if err != nil {
+		if strings.Contains(err.Error(), "too many open files") {
+			time.Sleep(timeout)
+			err = r.scanPort(ip, port, timeout)
+		} else {
+			fmt.Println(port, "closed")
+		}
+		return err
+	}
+
+	conn.Close()
+	fmt.Println(port, "open")
 	return nil
 }
 
 func (r *Rest) findAlternativePort() error {
 	currentPort := r.port
 	for port := currentPort; port < 32000; port++ {
-		if _, err := net.DialTimeout("tcp", "localhost:"+strconv.Itoa(port), 10*time.Second); err == nil {
+		err := r.scanPort("localhost", port, 10*time.Second)
+		if err != nil {
 			r.port = port
 			return nil
 		}
-		r.Warn(fmt.Sprintf("port %d is busy", port))
 	}
-
 	return errors.New("no alternatives port found")
 }
 
