@@ -7,9 +7,9 @@ import (
 
 func TestVault_Register(t *testing.T) {
 	vault, err := New(
-		WithToken("s.UA3hRV9lOjTKa8kojapKNW62"),
+		WithToken("s.71PDtRZlmMEZfh7G94C9H7Wo"),
 		SkipTLS(true),
-		WithServers("http://127.0.0.1:8200"))
+		WithServers("https://127.0.0.1:8200"))
 	if err != nil {
 		panic(err)
 	}
@@ -19,9 +19,9 @@ func TestVault_Register(t *testing.T) {
 
 func TestVault_Login(t *testing.T) {
 	vault, err := New(
-		WithToken("s.UA3hRV9lOjTKa8kojapKNW62"),
+		WithToken("s.71PDtRZlmMEZfh7G94C9H7Wo"),
 		SkipTLS(true),
-		WithServers("http://127.0.0.1:8200"))
+		WithServers("https://127.0.0.1:8200"))
 	if err != nil {
 		panic(err)
 	}
@@ -31,9 +31,9 @@ func TestVault_Login(t *testing.T) {
 
 func TestVault_Delete(t *testing.T) {
 	vault, err := New(
-		WithToken("s.UA3hRV9lOjTKa8kojapKNW62"),
+		WithToken("s.71PDtRZlmMEZfh7G94C9H7Wo"),
 		SkipTLS(true),
-		WithServers("http://127.0.0.1:8200"))
+		WithServers("https://127.0.0.1:8200"))
 	if err != nil {
 		panic(err)
 	}

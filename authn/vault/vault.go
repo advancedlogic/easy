@@ -28,7 +28,7 @@ type Vault struct {
 func New(options ...interfaces.AuthNOption) (*Vault, error) {
 	v := &Vault{
 		token:               "",
-		servers:             []string{"http://localhost:8200"},
+		servers:             make([]string, 0),
 		timeout:             10 * time.Second,
 		skipTLSVerification: true,
 	}
@@ -75,12 +75,19 @@ func SkipTLS(skipTLSVerification bool) interfaces.AuthNOption {
 }
 
 func (v *Vault) conenct() (*api.Client, error) {
-	client, err := api.NewClient(&api.Config{
+	config := &api.Config{
 		Address: v.servers[0],
-	})
+	}
+	if err := config.ConfigureTLS(&api.TLSConfig{
+		Insecure: v.skipTLSVerification,
+	}); err != nil {
+		return nil, err
+	}
+	client, err := api.NewClient(config)
 	if err != nil {
 		return nil, err
 	}
+	client.SetToken(v.token)
 	return client, nil
 }
 
@@ -105,7 +112,6 @@ func (v *Vault) Register(username, password string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	client.SetToken(v.token)
 
 	jsonUser, err := json.Marshal(user)
 	if err != nil {
@@ -126,7 +132,7 @@ func (v *Vault) Login(username, password string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	client.SetToken(v.token)
+
 	secret, err := client.Logical().Read(fmt.Sprintf("/cubbyhole/%s", username))
 	if err != nil {
 		return nil, err
@@ -152,7 +158,7 @@ func (v *Vault) Delete(username string) error {
 	if err != nil {
 		return err
 	}
-	client.SetToken(v.token)
+
 	_, err = client.Logical().Delete(fmt.Sprintf("/cubbyhole/%s", username))
 	if err != nil {
 		return err
