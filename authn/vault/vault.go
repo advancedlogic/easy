@@ -74,7 +74,7 @@ func SkipTLS(skipTLSVerification bool) interfaces.AuthNOption {
 	}
 }
 
-func (v *Vault) conenct() (*api.Client, error) {
+func (v *Vault) connect() (*api.Client, error) {
 	config := &api.Config{
 		Address: v.servers[0],
 	}
@@ -108,7 +108,7 @@ func (v *Vault) Register(username, password string) (interface{}, error) {
 		Enabled:   true,
 	}
 
-	client, err := v.conenct()
+	client, err := v.connect()
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (v *Vault) Register(username, password string) (interface{}, error) {
 }
 
 func (v *Vault) Login(username, password string) (interface{}, error) {
-	client, err := v.conenct()
+	client, err := v.connect()
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func (v *Vault) Logout(username string) error {
 }
 
 func (v *Vault) Delete(username string) error {
-	client, err := v.conenct()
+	client, err := v.connect()
 	if err != nil {
 		return err
 	}
