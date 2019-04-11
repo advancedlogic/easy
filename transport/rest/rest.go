@@ -243,7 +243,9 @@ func (r *Rest) scanPort(ip string, port int, timeout time.Duration) error {
 		return err
 	}
 
-	conn.Close()
+	if err = conn.Close(); err != nil {
+		return err
+	}
 	fmt.Println(port, "open")
 	return nil
 }

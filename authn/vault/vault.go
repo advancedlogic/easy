@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/advancedlogic/easy/commons"
 	"github.com/advancedlogic/easy/interfaces"
-	"github.com/shoenig/vaultapi"
+	"github.com/hashicorp/vault/api"
 	"time"
 )
 
@@ -66,19 +66,26 @@ func WithServers(servers ...string) interfaces.AuthNOption {
 	}
 }
 
-func (v *Vault) conenct() (vaultapi.Client, error) {
-	options := vaultapi.ClientOptions{
-		Servers:             v.servers,
-		HTTPTimeout:         v.timeout,
-		SkipTLSVerification: v.skipTLSVerification,
+func SkipTLS(skipTLSVerification bool) interfaces.AuthNOption {
+	return func(i interfaces.AuthN) error {
+		vault := i.(*Vault)
+		vault.skipTLSVerification = skipTLSVerification
+		return nil
 	}
-
-	tokener := vaultapi.NewStaticToken(v.token)
-	return vaultapi.New(options, tokener)
 }
 
-func (v *Vault) close(client vaultapi.Client) error {
-	return client.StepDown()
+func (v *Vault) conenct() (*api.Client, error) {
+	client, err := api.NewClient(&api.Config{
+		Address: v.servers[0],
+	})
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
+}
+
+func (v *Vault) close(client *api.Client) error {
+	return nil
 }
 
 func (v *Vault) Register(username, password string) (interface{}, error) {
@@ -98,12 +105,16 @@ func (v *Vault) Register(username, password string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer v.close(client)
+	client.SetToken(v.token)
+
 	jsonUser, err := json.Marshal(user)
 	if err != nil {
 		return nil, err
 	}
-	err = client.Put(fmt.Sprintf("/cubbyhole/%s", username), string(jsonUser))
+
+	_, err = client.Logical().Write(fmt.Sprintf("/cubbyhole/%s", username), map[string]interface{}{
+		"user": string(jsonUser),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -115,11 +126,12 @@ func (v *Vault) Login(username, password string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer v.close(client)
-	jsonUser, err := client.Get(fmt.Sprintf("/cubbyhole/%s", username))
+	client.SetToken(v.token)
+	secret, err := client.Logical().Read(fmt.Sprintf("/cubbyhole/%s", username))
 	if err != nil {
 		return nil, err
 	}
+	jsonUser := secret.Data["user"].(string)
 	var user VaultUser
 	err = json.Unmarshal([]byte(jsonUser), &user)
 	if err != nil {
@@ -140,8 +152,8 @@ func (v *Vault) Delete(username string) error {
 	if err != nil {
 		return err
 	}
-	defer v.close(client)
-	err = client.Delete(fmt.Sprintf("/cubbyhole/%s", username))
+	client.SetToken(v.token)
+	_, err = client.Logical().Delete(fmt.Sprintf("/cubbyhole/%s", username))
 	if err != nil {
 		return err
 	}
