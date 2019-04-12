@@ -207,3 +207,35 @@ func ComparePasswords(hashedPwd string, plainPwd []byte) bool {
 
 	return true
 }
+
+func PrimitiveArrayContains(array []interface{}, element interface{}) int {
+	for i, data := range array {
+		switch x := element.(type) {
+		case string:
+			if data.(string) == x {
+				return i
+			}
+		case int:
+			if data.(int) == x {
+				return i
+			}
+		case float64:
+			if data.(float64) == x {
+				return i
+			}
+		case float32:
+			if data.(float32) == x {
+				return i
+			}
+		case int32:
+			if data.(int32) == x {
+				return i
+			}
+		case int64:
+			if data.(int64) == x {
+				return i
+			}
+		}
+	}
+	return -1
+}
