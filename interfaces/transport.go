@@ -7,6 +7,7 @@ type Transport interface {
 	Handler(string, string, interface{}) error
 	Middleware(interface{}) error
 	StaticFilesFolder(string, string) error
+	Router() (interface{}, error)
 }
 
 type TransportOption func(Transport) error

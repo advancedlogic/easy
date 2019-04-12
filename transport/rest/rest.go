@@ -101,6 +101,7 @@ type Rest struct {
 	cert           string
 	key            string
 	server         *http.Server
+	router         *gin.Engine
 	*logrus.Logger
 }
 
@@ -113,6 +114,7 @@ func New(options ...interfaces.TransportOption) (*Rest, error) {
 		deleteHandlers: make(map[string][]gin.HandlerFunc),
 		middleware:     make([]func(ctx *gin.Context), 0),
 		websiteFolder:  make(map[string]string),
+		router:         gin.New(),
 		Logger:         logrus.New(),
 	}
 
@@ -167,7 +169,7 @@ func (r *Rest) StaticFilesFolder(uri, folder string) error {
 }
 
 func (r *Rest) Run() error {
-	router := gin.New()
+	router := r.router
 	router.Use(ginlogrus.Logger(r.Logger), gin.Recovery())
 	router.GET("/healthcheck", func(c *gin.Context) {
 		c.String(200, "product service is good")
@@ -274,4 +276,11 @@ func (r *Rest) WithLogger(logger *logrus.Logger) error {
 		return nil
 	}
 	return errors.New("logger cannot be nil")
+}
+
+func (r *Rest) Router() (interface{}, error) {
+	if r.router != nil {
+		return r.router, nil
+	}
+	return nil, errors.New("router is nil")
 }
