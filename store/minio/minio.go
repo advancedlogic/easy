@@ -147,7 +147,7 @@ func (m *Minio) Delete(key string) error {
 	return client.RemoveObject(m.bucket, key)
 }
 
-func (m *Minio) List(params ...interface{}) ([]interface{}, error) {
+func (m *Minio) List(params ...interface{}) (interface{}, error) {
 	client, err := minio.New(m.endpoint, m.accessKey, m.secretKey, false)
 	if err != nil {
 		return nil, err
