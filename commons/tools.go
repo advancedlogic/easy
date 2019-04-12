@@ -208,8 +208,8 @@ func ComparePasswords(hashedPwd string, plainPwd []byte) bool {
 	return true
 }
 
-func PrimitiveArrayContains(array []interface{}, element interface{}) int {
-	for i, data := range array {
+func PrimitiveArrayContains(array interface{}, element interface{}) int {
+	for i, data := range array.([]interface{}) {
 		switch x := element.(type) {
 		case string:
 			if data.(string) == x {
