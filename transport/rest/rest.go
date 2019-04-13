@@ -239,8 +239,6 @@ func (r *Rest) scanPort(ip string, port int, timeout time.Duration) error {
 		if strings.Contains(err.Error(), "too many open files") {
 			time.Sleep(timeout)
 			err = r.scanPort(ip, port, timeout)
-		} else {
-			fmt.Println(port, "closed")
 		}
 		return err
 	}
@@ -248,7 +246,7 @@ func (r *Rest) scanPort(ip string, port int, timeout time.Duration) error {
 	if err = conn.Close(); err != nil {
 		return err
 	}
-	fmt.Println(port, "open")
+	r.Warn(fmt.Sprintf("port %s is busy", port))
 	return nil
 }
 
