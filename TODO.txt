@@ -2,3 +2,4 @@
 [002-IMP] Add env variables management (for DOCKER)
 [003-IMP] Add context
 [004-IMP] User session after LOGIN
+[005-FIX] Logrus in Rest

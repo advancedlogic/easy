@@ -76,11 +76,11 @@ func Try(body func(), handler func(interface{})) {
 	body()
 }
 
-func If(condition bool, t func(), f func()) {
+func If(condition bool, t interface{}, f interface{}) interface{} {
 	if condition {
-		t()
+		return t
 	} else {
-		f()
+		return f
 	}
 }
 
