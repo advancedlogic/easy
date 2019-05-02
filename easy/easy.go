@@ -2,6 +2,7 @@ package easy
 
 import (
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"plugin"
 
@@ -61,13 +62,22 @@ func WithName(name string) Option {
 	}
 }
 
-func WithLogo(logo string) Option {
+func WithLogo(logo interface{}) Option {
 	return func(easy *Easy) error {
-		if logo == "" {
-			return errors.New("logo cannot be empty")
+		if logo != nil {
+			switch logo.(type) {
+			case []byte:
+				easy.logo = string(logo.([]byte))
+			case string:
+				b, err := ioutil.ReadFile(logo.(string))
+				if err != nil {
+					return err
+				}
+				easy.logo = string(b)
+			}
+			return nil
 		}
-		easy.logo = logo
-		return nil
+		return errors.New("logo cannot be nil")
 	}
 }
 
