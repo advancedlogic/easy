@@ -2,6 +2,9 @@ package easy
 
 import (
 	"errors"
+	"net/http"
+	"plugin"
+
 	"github.com/advancedlogic/easy/authn/fs"
 	"github.com/advancedlogic/easy/broker/nats"
 	"github.com/advancedlogic/easy/commons"
@@ -9,13 +12,11 @@ import (
 	"github.com/advancedlogic/easy/interfaces"
 	"github.com/advancedlogic/easy/registry/consul"
 	"github.com/advancedlogic/easy/transport/rest"
-	"github.com/ankit-arora/go-utils/go-shutdown-hook"
+	go_shutdown_hook "github.com/ankit-arora/go-utils/go-shutdown-hook"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
-	"github.com/x-cray/logrus-prefixed-formatter"
-	"net/http"
-	"plugin"
+	prefixed "github.com/x-cray/logrus-prefixed-formatter"
 )
 
 type Option func(*Easy) error
@@ -24,6 +25,7 @@ type Easy struct {
 	id        string
 	name      string
 	isRunning bool
+	logo      string
 
 	registry      interfaces.Registry
 	transport     interfaces.Transport
@@ -55,6 +57,16 @@ func WithName(name string) Option {
 			return errors.New("name cannot be empty")
 		}
 		easy.name = name
+		return nil
+	}
+}
+
+func WithLogo(logo string) Option {
+	return func(easy *Easy) error {
+		if logo == "" {
+			return errors.New("logo cannot be empty")
+		}
+		easy.logo = logo
 		return nil
 	}
 }
@@ -405,6 +417,8 @@ func (easy *Easy) Cache() interfaces.Cache {
 }
 
 func (easy *Easy) Run() {
+	println(easy.logo)
+
 	go_shutdown_hook.ADD(func() {
 		easy.Stop()
 		easy.Warn("Goodbye and thanks for all the fish")
