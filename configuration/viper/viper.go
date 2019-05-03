@@ -3,11 +3,12 @@ package viper
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/advancedlogic/easy/interfaces"
 	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"time"
 )
 
 func WithName(name string) interfaces.ConfigurationOption {
@@ -157,6 +158,13 @@ func (v *Viper) GetDurationOrDefault(path string, defaultValue time.Duration) ti
 
 func (v *Viper) GetStringOrDefault(path string, defaultValue string) string {
 	if value := v.GetString(path); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+func (v *Viper) GetArrayOfStringsOrDefault(path string, defaultValue []string) []string {
+	if value := v.GetStringSlice(path); value != nil {
 		return value
 	}
 	return defaultValue
