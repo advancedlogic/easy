@@ -3,6 +3,7 @@ package nats
 import (
 	"errors"
 	"fmt"
+
 	"github.com/advancedlogic/easy/interfaces"
 	"github.com/nats-io/go-nats"
 	"github.com/sirupsen/logrus"
@@ -92,7 +93,7 @@ func (n *Nats) Run() error {
 		return err
 	}
 	for topic, handler := range n.handlers {
-		subscription, err := n.conn.Subscribe(topic, handler)
+		subscription, err := n.conn.QueueSubscribe(topic, "default", handler)
 		if err != nil {
 			return err
 		}
