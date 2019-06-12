@@ -93,7 +93,9 @@ func WithRegistry(registry interfaces.Registry) Option {
 
 func WithDefaultRegistry() Option {
 	return func(easy *Easy) error {
-		r, err := consul.New(consul.WithLogger(easy.Logger))
+		r, err := consul.New(
+			consul.WithLogger(easy.Logger),
+			consul.WithHealthEndpoint("health"))
 		if err != nil {
 			return err
 		}
