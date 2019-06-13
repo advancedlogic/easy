@@ -95,6 +95,7 @@ func WithDefaultRegistry() Option {
 	return func(easy *Easy) error {
 		r, err := consul.New(
 			consul.WithLogger(easy.Logger),
+			consul.WithID(commons.UUID()),
 			consul.WithName(easy.Name()),
 			consul.WithHealthEndpoint("healthcheck"),
 		)
