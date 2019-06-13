@@ -3,10 +3,11 @@ package consul
 import (
 	"errors"
 	"fmt"
-	"github.com/advancedlogic/easy/interfaces"
-	"github.com/sirupsen/logrus"
 	"log"
 	"os"
+
+	"github.com/advancedlogic/easy/interfaces"
+	"github.com/sirupsen/logrus"
 
 	api "github.com/hashicorp/consul/api"
 )
@@ -209,4 +210,13 @@ func (c *Consul) WithLogger(logger *logrus.Logger) error {
 		return nil
 	}
 	return errors.New("logger cannot be nil")
+}
+
+func (c *Consul) WithPort(port int) error {
+	if port > -1 {
+		c.port = port
+		return nil
+	}
+
+	return errors.New("port must be positive")
 }

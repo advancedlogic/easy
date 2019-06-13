@@ -8,6 +8,7 @@ type Transport interface {
 	Middleware(interface{}) error
 	StaticFilesFolder(string, string) error
 	Router() (interface{}, error)
+	Port() int
 }
 
 type TransportOption func(Transport) error

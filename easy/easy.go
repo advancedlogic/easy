@@ -95,7 +95,9 @@ func WithDefaultRegistry() Option {
 	return func(easy *Easy) error {
 		r, err := consul.New(
 			consul.WithLogger(easy.Logger),
-			consul.WithHealthEndpoint("healthcheck"))
+			consul.WithName(easy.Name()),
+			consul.WithHealthEndpoint("healthcheck"),
+		)
 		if err != nil {
 			return err
 		}
@@ -437,7 +439,11 @@ func (easy *Easy) Run() {
 	})
 	if easy.registry != nil {
 		easy.Info("registry setup")
-		err := easy.registry.Register()
+		err := easy.registry.WithPort(easy.Transport().Port())
+		if err != nil {
+			easy.Fatal(err)
+		}
+		err = easy.registry.Register()
 		if err != nil {
 			easy.Fatal(err)
 		}

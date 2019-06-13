@@ -4,16 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/advancedlogic/easy/commons"
-	"github.com/advancedlogic/easy/interfaces"
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
-	"github.com/toorop/gin-logrus"
-	"github.com/zsais/go-gin-prometheus"
 	"net"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/advancedlogic/easy/commons"
+	"github.com/advancedlogic/easy/interfaces"
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+	ginlogrus "github.com/toorop/gin-logrus"
+	ginprometheus "github.com/zsais/go-gin-prometheus"
 )
 
 func WithPort(port int) interfaces.TransportOption {
@@ -281,4 +282,8 @@ func (r *Rest) Router() (interface{}, error) {
 		return r.router, nil
 	}
 	return nil, errors.New("router is nil")
+}
+
+func (r *Rest) Port() int {
+	return r.port
 }
