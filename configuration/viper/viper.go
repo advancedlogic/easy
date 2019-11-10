@@ -173,3 +173,10 @@ func (v *Viper) GetArrayOfStringsOrDefault(path string, defaultValue []string) [
 	}
 	return defaultValue
 }
+
+func (v *Viper) GetMapOfStringOrDefault(path string, defaultValue map[string]string) map[string]string {
+	if value := v.Viper.GetStringMapString(path); value != nil {
+		return value
+	}
+	return defaultValue
+}

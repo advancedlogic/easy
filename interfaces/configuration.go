@@ -19,6 +19,8 @@ type Configuration interface {
 	GetBoolOrDefault(string, bool) bool
 	GetFloat64OrDefault(string, float64) float64
 	GetDurationOrDefault(string, time.Duration) time.Duration
+	GetMapOfStringOrDefault(string, map[string]string) map[string]string
+	GetArrayOfStringsOrDefault(string, []string) []string
 }
 
 type ConfigurationOption func(Configuration) error
