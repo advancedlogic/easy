@@ -11,6 +11,7 @@ import (
 
 	"github.com/advancedlogic/easy/commons"
 	"github.com/advancedlogic/easy/interfaces"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	ginlogrus "github.com/toorop/gin-logrus"
@@ -25,6 +26,14 @@ func WithPort(port int) interfaces.TransportOption {
 			return nil
 		}
 		return errors.New("port cannot be zero")
+	}
+}
+
+func EnableCORS() interfaces.TransportOption {
+	return func(t interfaces.Transport) error {
+		rest := t.(*Rest)
+		rest.cors = true
+		return nil
 	}
 }
 
@@ -91,6 +100,7 @@ func WithLogger(logger *logrus.Logger) interfaces.TransportOption {
 type Rest struct {
 	// Port bound to server
 	port           int
+	cors           bool
 	readTimeout    time.Duration
 	writeTimeout   time.Duration
 	getHandlers    map[string][]gin.HandlerFunc
@@ -175,6 +185,12 @@ func (r *Rest) Run() error {
 	router.GET("/healthcheck", func(c *gin.Context) {
 		c.String(200, "product service is good")
 	})
+
+	if r.cors {
+		config := cors.DefaultConfig()
+		config.AllowOrigins = []string{"*"}
+		router.Use(cors.New(config))
+	}
 
 	p := ginprometheus.NewPrometheus("gin")
 	p.Use(router)

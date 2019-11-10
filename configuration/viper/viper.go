@@ -125,7 +125,11 @@ func (v *Viper) Set(key string, value interface{}) error {
 }
 
 func (v *Viper) Get(key string) (interface{}, error) {
-	return nil, nil
+	value, err := v.Get(key)
+	if err != nil {
+		return nil, err
+	}
+	return value, nil
 }
 
 func (v *Viper) GetIntOrDefault(path string, defaultValue int) int {
